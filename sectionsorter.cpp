@@ -7,6 +7,13 @@ SectionSorter::SectionSorter(QString class_name) : class_name_(class_name) {
   method_groups_.resize(kMethodGroupsAmount);
 }
 
+QString SectionSorter::SortSection(QString &section) {
+  auto methods = SplitSectionIntoMethods(section);
+  PlaceMethodsIntoGroups(methods);
+  SortMethodsInGroups();
+  return AssembleSortedString();
+}
+
 bool SectionSorter::SortingForMethods(const QString &left_method,
                                       const QString &right_method) {
   QString left_truncated_method = TruncateCommentsFromMethod(left_method);

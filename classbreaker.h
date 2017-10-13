@@ -27,6 +27,7 @@ class ClassBreaker {
   static QList<ParsedClass> FindClassBlocksInString(QString& block);
   static QString AssembleBlockBack(ParsedClass parsed_class,
                                    QString& initial_string);
+  static void SortClassSections(ParsedClass& parsed_class);
 
  private:
   static QList<int> BuildSectionPositionList(const QString& class_block);
