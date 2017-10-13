@@ -30,6 +30,10 @@ class ClassBreaker {
   static QString FindClassName(const QString& block, int token_position);
   static QRegExp SectionFinderRegExp();
   static QVector<QString> SplitClassBlockToSections(const QString& class_block);
+  static QString AssembleBlockBack(ParsedClass parsed_class,
+                                   QString& initial_string);
+
+  static QString AssembleSectionsBack(QVector<QString> sections);
 
   static const QStringList kSectionNames;
   static const int kSectionsAmount = 7;
