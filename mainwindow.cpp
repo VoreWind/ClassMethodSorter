@@ -21,8 +21,14 @@ MainWindow::~MainWindow() { delete ui; }
 void MainWindow::ReorderText() {
   QString text_section = ui->segment_text_edit->toPlainText();
   //  text_section = CleanString(text_section);
-  QList<ParsedClass> broken_class =
+  QList<ParsedClass> broken_classes =
       ClassBreaker::FindClassBlocksInString(text_section);
+
+  for (auto broken_class : broken_classes) {
+    ClassBreaker::AssembleBlockBack(broken_class, text_section);
+  }
+
+  ui->segment_text_edit->setPlainText(text_section);
 }
 
 QString MainWindow::ReorganizeSection(const QString &code_section) {

@@ -16,6 +16,7 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
     ParsedClass parsed_class;
 
     parsed_class.class_name = FindClassName(block, token_position);
+    parsed_class.class_header = FindClassHeader(block, token_position);
 
     int open_curvy_brace_position = block.indexOf("{", token_position);
     int next_open_curvy_brace_position = open_curvy_brace_position;
@@ -54,6 +55,14 @@ QString ClassBreaker::FindClassName(const QString& block, int token_position) {
   int second_space_position = block.indexOf(" ", first_space_position + 1);
   return block.mid(first_space_position,
                    second_space_position - first_space_position);
+}
+
+QString ClassBreaker::FindClassHeader(const QString& block,
+                                      int token_position) {
+  int brace_position = block.indexOf("{", token_position);
+  // Придумать, как это покрасивее описать.
+  brace_position++;
+  return block.mid(token_position, brace_position - token_position);
 }
 
 QRegExp ClassBreaker::SectionFinderRegExp() {
@@ -110,13 +119,30 @@ QVector<QString> ClassBreaker::SplitClassBlockToSections(
 QString ClassBreaker::AssembleBlockBack(ParsedClass parsed_class,
                                         QString& initial_string) {
   QString assembled_class;
+  assembled_class.append(parsed_class.class_header);
+  assembled_class.append("\n");
+  assembled_class.append(
+      AssembleBlockFromSections(parsed_class.split_class_body));
+
+  for (auto inner_class : parsed_class.inner_classes) {
+    AssembleBlockBack(inner_class, assembled_class);
+  }
+  assembled_class.append("}");
+  initial_string.replace("class ##" + parsed_class.class_name + "##",
+                         assembled_class);
 
   return assembled_class;
 }
 
-QString ClassBreaker::AssembleSectionsBack(QVector<QString> sections) {
-  for (auto section : sections) {
+QString ClassBreaker::AssembleBlockFromSections(QVector<QString> sections) {
+  QString assembled_block;
+  for (int i = 0; i < sections.count(); ++i) {
+    QString section = sections.at(i);
     if (!section.isEmpty()) {
+      section.prepend(" " + kSectionNames.at(i) + "\n");
+      section.append("\n");
+      assembled_block.append(section);
     }
   }
+  return assembled_block;
 }
