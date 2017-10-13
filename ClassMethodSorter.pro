@@ -26,17 +26,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    classbreaker.cpp \
-    sectionsorter.cpp \
-    membersorter.cpp \
-    sorter.cpp
+    classbreaker.cpp
 
 QMAKE_CXXFLAGS += -std=c++11
 
 HEADERS  += mainwindow.h \
-    classbreaker.h \
-    sectionsorter.h \
-    membersorter.h \
-    sorter.h
+    classbreaker.h
 
 FORMS    += mainwindow.ui

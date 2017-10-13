@@ -15,7 +15,7 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="1" column="0">
+    <item row="2" column="0">
      <widget class="QPushButton" name="sort_button">
       <property name="text">
        <string>Sort</string>
@@ -25,78 +25,266 @@
     <item row="0" column="0">
      <widget class="QPlainTextEdit" name="segment_text_edit">
       <property name="plainText">
-       <string>#ifndef KEYPARAMETERSPAGE_H
-#define KEYPARAMETERSPAGE_H
+       <string>#ifndef CRYPTADMIN_H
+#define CRYPTADMIN_H
 
-#include &lt;QWizardPage&gt;
+#include &lt;cryptmethods.h&gt;
 
-#include &lt;algorithminfoprovider.h&gt;
+#include &lt;QDateTime&gt;
+#include &lt;QMap&gt;
+#include &lt;QString&gt;
+#include &lt;QStringList&gt;
 
-class QRadioButton;
-class QCheckBox;
-class QLineEdit;
-class QVBoxLayout;
-class QComboBox;
+#include &lt;libcert.h&gt;
+#include &lt;pkiparse.h&gt;
 
-class KeyParametersPage : public QWizardPage {
-  Q_OBJECT
+class CryptAdmin : public CryptMethods {
  public:
-  explicit KeyParametersPage(QWidget *parent);
+  static buff_t InterpretQByteArrayAsBufft(const QByteArray &amp;data_byte_array);
+  static int FindCrl(const QByteArray &amp;raw_cert, const QList&lt;QByteArray&gt; &amp;crls);
+  static QByteArray ConvertBufftToQByteArray(const buff_t *data_buffer);
 
-  int nextId() const override;
-  bool isComplete() const override;
-  bool validatePage() override;
+  static bool GetValidPeriodForCertificate(const cert_t &amp;cert,
+                                           time_t &amp;validity_period);
 
- signals:
-  void CaIsRoot(bool is_ca);
+  static int GetRequestCert(const QByteArray &amp;raw_request,
+                            QByteArray &amp;certificate);
 
- private slots:
-  void CreateKeyCurrier();
-  void BlockIpEdit();
-  void HandleRestoreCaToggled(bool is_toggled);
+  CryptAdmin();
+  ~CryptAdmin();
+
+  int CryptConnect(QByteArray params_dict,
+                   bool is_remote_vcp = false,
+                   const QString &amp;config_path = kDefaultConfigPath);
+  int CryptDisconnect();
+
+  int PrivKeyRead(
+      const QString &amp;password,
+      const QByteArray &amp;open_key,
+      const QString &amp;serial_of_certificate_corresponding_to_open_key,
+      int &amp;usage_count);
+
+  int PrivKeyWrite(const QString &amp;password, const QString &amp;device_id);
+  int PrivKeyWrite(const QString &amp;password);
+
+  int PrivKeyClear();
+
+// Test comment CertRequest.
+  int CertRequest(const QByteArray &amp;raw_ca_cert,
+                  const CRequest &amp;request,
+                  const CertTemplate &amp;cert_template,
+                  QByteArray &amp;raw_request);  /// Генерирует ключ.
+  int CrossCertRequest(const QByteArray &amp;other_ca_cert,
+                       const QByteArray &amp;own_ca_cert,
+                       const CertTemplate &amp;cert_template,
+                       QByteArray &amp;raw_request);
+  int MakeRequestOfCrossCertificate(
+      const QByteArray &amp;other_ca_cert,
+      const QByteArray &amp;own_ca_cert,
+      const QList&lt;QByteArray&gt; &amp;all_own_ca_certificates,
+      const CertTemplate &amp;cert_template,
+      QByteArray &amp;raw_request);
+  int RevokeRequest(const QByteArray &amp;raw_ca_cert,
+                    const QByteArray &amp;raw_cert,
+                    const QString &amp;password,
+                    QByteArray &amp;raw_request,
+                    const int reason = 5);
+  int StopRequest(const QByteArray &amp;raw_ca_cert,
+                  const QByteArray &amp;raw_cert,
+                  const QString &amp;password,
+                  const QDate &amp;date,
+                  QByteArray &amp;raw_request);
+  int StartRequest(const QByteArray &amp;raw_ca_cert,
+                   const QByteArray &amp;raw_cert,
+                   const QString &amp;password,
+                   QByteArray &amp;raw_request);
+
+  int MakeRootCert(const CRequest &amp;request,
+                   const CertTemplate &amp;cert_template,
+                   QByteArray &amp;raw_cert);  /// Генерирует ключ.
+  int MakeCert(const QByteArray &amp;raw_request,
+               unsigned long long number,
+               QByteArray &amp;raw_cert);
+  int MakeCrl(const QByteArray &amp;raw_ca_cert,
+              unsigned long long crl_number,
+              unsigned long long crl_base_number,
+              const QList&lt;QStringList&gt; &amp;bad_certs,
+              QByteArray &amp;raw_crl,
+              const QList&lt;int&gt; &amp;reasons = QList&lt;int&gt;());
+
+  int MakeSign(const QByteArray &amp;data, QByteArray &amp;sign);
+
+  int MakeHash(const QByteArray &amp;cert,
+               const QByteArray &amp;data,
+               QByteArray &amp;hash);
+
+  int CheckCert(const QByteArray &amp;raw_user_cert,
+                const QByteArray &amp;raw_ca_cert,
+                const QByteArray &amp;raw_crl,
+                const QByteArray &amp;raw_ca_cert_for_crl,
+                QString &amp;reason_invalidity_certificate);
+
+  int CheckCert(const QByteArray &amp;raw_user_cert,
+                const QByteArray &amp;raw_ca_cert,
+                const QByteArray &amp;raw_crl,
+                const QByteArray &amp;raw_ca_cert_for_crl);
+
+  int CheckRequest(const QByteArray &amp;raw_request);
+
+  int CheckCrl(const QByteArray &amp;raw_crl, const QByteArray &amp;raw_ca_cert);
+
+  int CheckSign(const QByteArray &amp;raw_cert,
+                const QByteArray &amp;data,
+                const QByteArray &amp;sign);
+
+  int ResignRequest(const QByteArray &amp;raw_request,
+                    const QByteArray &amp;raw_user_cert,
+                    QByteArray &amp;new_request);
+
+  int GetCertChain(QList&lt;QByteArray&gt; &amp;raw_certs, QList&lt;QByteArray&gt; &amp;raw_crls);
+
+  int DecomposeInfo(QStringList &amp;group_names,
+                    QList&lt;int&gt; &amp;max_count,
+                    QList&lt;int&gt; &amp;compose_count);
+  int DecomposeKey();
+
+  int WriteKeyPart(
+      int group_number,
+      int user_number,
+      const QString &amp;password,
+      const QByteArray &amp;open_key,
+      const QString &amp;serial_of_certificate_corresponding_to_open_key);
+
+  int ReadKeyPart(
+      int group_number,
+      int user_number,
+      const QString &amp;password,
+      const QByteArray &amp;open_key,
+      const QString &amp;serial_of_certificate_corresponding_to_open_key);
+
+  int ComposeKey();
+
+  int ShowRemoteDialog(const QString &amp;message, QString &amp;answer);
+
+  int CertHashInfo(const QByteArray &amp;raw_cert,
+                   QString &amp;hash_algorithm,
+                   QString &amp;hash_param);
+
+  int GetRandom(const QString &amp;rand_type, int size, QByteArray &amp;rand);
+
+  QString GeneratePin(int length_of_password);
+
+  int GetUctKeyFromSecret(QByteArray &amp;key);
+
+  bool IsKeyExists() const;
+  QByteArray GetRawSignKey();
+
+  int SignContainerOfCryptographicParameters(
+      const QByteArray &amp;container_parameters,
+      const QByteArray &amp;ca_certificate,
+      QByteArray &amp;signed_container_parameters);
+
+  enum ContainersType {
+    kNotEncrypted = 0,
+    kEncrypted = 1,
+    kPkcs = 2,
+    kUnknown = 3
+  };
+  ContainersType GetContainersType() const;
 
  private:
-  void CreateGui();
-  void FillLocCurrier();
-  bool IsAlgorithmApprovedForCurring(char *oid);
+  static const QString kDefaultConfigPath;
 
-  int GetTypeCurrier(const QString &amp;ip,
-                     int port,
-                     QStringList &amp;container_ids,
-                     QStringList &amp;container_names,
-                     QStringList &amp;currier_ids,
-                     QStringList &amp;currier_names);
+  static int AddIssuerSerialToCert(const char *issuer_serial,
+                                   int issuer_serial_size,
+                                   cert_t &amp;cert);
+  static int AddIssuerSerialToCrl(const char *issuer_serial,
+                                  int issuer_serial_size,
+                                  crl_t &amp;crl);
+  static int AddIssuerSerialToRequest(const char *issuer_serial,
+                                      int issuer_serial_size,
+                                      req_t &amp;req);
+  static int AddIssuerSerialToExtensions(char const *issuer_serial,
+                                         int issuer_serial_size,
+                                         cert_ext_t **extensions,
+                                         unsigned long *count_of_extension);
 
-  int GetNumberOfCurrierByOid(const QString &amp;oid);
-  int GetNumberOfCurrierForLocalByOid(const QString &amp;oid);
-  void RemoveOidsFromAlgorythmsInfo(const QStringList &amp;oids_to_remove,
-                                    QList&lt;AlgorithmInfo&gt; &amp;algorithms_info);
+  int PrivKeyRead(const QString &amp;password,
+                  const QByteArray &amp;open_key,
+                  int &amp;usage_count);
+  int ReadKeyPart(int group_number,
+                  int user_number,
+                  const QString &amp;password,
+                  const QByteArray &amp;open_key);
+  int WriteKeyPart(int group_number,
+                   int user_number,
+                   const QString &amp;password,
+                   const QByteArray &amp;open_key);
+  bool IsCryptoAndOperationLoaded() const;
 
-  QRadioButton *is_restore_ca_radio_ = nullptr;
-  QRadioButton *is_new_ca_radio_ = nullptr;
+  int MeshingCrl(QList&lt;QByteArray&gt; &amp;crls);
+  int DivCheckCrl(const CCertificate &amp;cert, const QString &amp;crl_number);
 
-  QCheckBox *is_root_ca_check_box_ = nullptr;
-  QLineEdit *ip_line_edit_ = nullptr;
-  QVBoxLayout *layout_ = nullptr;
-  QComboBox *container_combo_box_ = nullptr;
-  QComboBox *currier_combo_box_ = nullptr;
-  QComboBox *container_loc_combo_box_ = nullptr;
-  QComboBox *currier_loc_combo_box_ = nullptr;
+  QMap&lt;QString, QByteArray&gt; delta_crls_;
+  QMap&lt;QString, QList&lt;QByteArray&gt; &gt; distributed_crls_;
+  QString serial_of_certificate_corresponding_to_open_key_;
 
-  QStringList container_id_;
-  QStringList currier_id_;
-  QStringList container_loc_id_;
-  QStringList currier_loc_id_;
-  bool is_correct_;
+  QString key_device_id_;
+  QString key_syntax_id_;
+  QString key_random_id_;
+  int key_usage_count_ = 0;
+  time_t key_timeout_ = 0;
+
+  QString compose_algorithm_id_;
+  QString compose_device_id_;
+  QString compose_syntax_id_;
+  int compose_usage_count_ = 0;
+  time_t compose_timeout_ = 0;
+  QList&lt;int&gt; compose_parts_;
+
+  QString sign_random_id_;
+  time_t cert_validity_ = 0;
+  time_t crl_update_ = 0;
+
+  int operation_loaded_ = 0;
+  int compose_loaded_ = 0;
+  int crypto_loaded_ = 0;
+  int key_loaded_ = 0;
 };
 
-#endif  // KEYPARAMETERSPAGE_H
+#endif  // CRYPTADMIN_H
 </string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLineEdit" name="class_name_line">
+      <property name="text">
+       <string>CryptAdmin</string>
       </property>
      </widget>
     </item>
    </layout>
   </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>647</width>
+     <height>19</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>
