@@ -3,10 +3,11 @@
 
 #include <QList>
 #include <QString>
+#include <QVector>
 
 struct ParsedClass {
   QString class_name;
-  QString class_body;
+  QVector<QString> split_class_body;
   QList<ParsedClass> inner_classes;
 };
 

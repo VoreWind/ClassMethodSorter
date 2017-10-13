@@ -3,7 +3,6 @@
 
 #include <QMainWindow>
 
-
 namespace Ui {
 class MainWindow;
 }
@@ -19,34 +18,6 @@ class MainWindow : public QMainWindow {
   void ReorderText();
 
  private:
-  enum Blocks {
-    kUsingDirectives,
-    kTypedefs,
-    kEnums,
-    kInlineStructs,
-    kInlineClasses,
-    kStaticMethods,
-    kStaticFactoryMethods,
-    kConstructors,
-    kDestructors,
-    kAssignmentOperators,
-    kNonConstantOperators,
-    kVirtualNonConstantMethods,
-    kNonConstantMethods,
-    kConstantOperators,
-    kVirtualConstantMethods,
-    kConstantMethods,
-
-    kStaticNonConstantMembers,
-    kStaticConstantMembers,
-    kNonConstantMembers,
-    kConstantMembers,
-
-    kFriendClasses,
-    kFriendOperators,
-    kFriendMethods,
-  };
-
   static int MethodParamsAmount(QString truncated_method);
   static int MethodStringAmount(QString truncated_method);
   static QString TruncateCommentsFromMethod(const QString &method);
@@ -64,9 +35,7 @@ class MainWindow : public QMainWindow {
 
   QString FindClassBlocksInString(QString &block);
 
-  static const int kMethodGroupsAmount = 23;
   Ui::MainWindow *ui;
   QString input_string_;
-  QVector<QStringList> method_groups_;
 };
 #endif  // MAINWINDOW_H

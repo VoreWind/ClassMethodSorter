@@ -37,8 +37,7 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
     block.replace(token_position,
                   close_curvy_brace_position - token_position + 1,
                   "class ##" + parsed_class.class_name + "##");
-    parsed_class.class_body = class_block;
-    SplitClassBlockToSections(class_block);
+    parsed_class.split_class_body = SplitClassBlockToSections(class_block);
     parsed_class.inner_classes = FindClassBlocksInString(class_block);
     block_class_list.push_back(parsed_class);
     //    qDebug() << class_block;
