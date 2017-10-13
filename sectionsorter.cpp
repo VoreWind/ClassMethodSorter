@@ -1,38 +1,25 @@
 #include "sectionsorter.h"
 
-#include <QDebug>
 #include <QString>
 #include <QStringList>
-
-#include <membersorter.h>
 
 SectionSorter::SectionSorter(QString class_name) : class_name_(class_name) {
   method_groups_.resize(kMethodGroupsAmount);
 }
 
-QString SectionSorter::SortSection(QString &section) {
-  auto methods = SplitSectionIntoElements(section);
-  PlaceMethodsIntoGroups(methods);
-  SortMethodsInGroups();
-  return AssembleSortedString();
-}
-
 bool SectionSorter::SortingForMethods(const QString &left_method,
                                       const QString &right_method) {
-  QString left_truncated_method = TruncateCommentsFromElement(left_method);
-  QString right_truncated_method = TruncateCommentsFromElement(right_method);
+  QString left_truncated_method = TruncateCommentsFromMethod(left_method);
+  QString right_truncated_method = TruncateCommentsFromMethod(right_method);
 
-  int right_method_string_count = ElementStringAmount(right_method);
-  int left_method_string_count = ElementStringAmount(left_method);
+  int right_method_string_count = MethodStringAmount(right_method);
+  int left_method_string_count = MethodStringAmount(left_method);
 
-  const int one_line_method_string_count = 0;
-  if (right_method_string_count == one_line_method_string_count &&
-      left_method_string_count == one_line_method_string_count) {
+  if (right_method_string_count == 1 && left_method_string_count == 1) {
     return left_method < right_method;
   }
 
-  if (right_method_string_count == one_line_method_string_count ||
-      left_method_string_count == one_line_method_string_count) {
+  if (right_method_string_count == 1 || left_method_string_count == 1) {
     return left_method_string_count < right_method_string_count;
   }
 
@@ -43,14 +30,10 @@ bool SectionSorter::SortingForMethods(const QString &left_method,
     return left_method_params_count < right_method_params_count;
   }
 
-  if (right_method_string_count != left_method_string_count) {
-    return left_method_string_count < right_method_string_count;
-  }
-
   int right_truncated_method_string_count =
-      ElementStringAmount(right_truncated_method);
+      MethodStringAmount(right_truncated_method);
   int left_truncated_method_string_count =
-      ElementStringAmount(left_truncated_method);
+      MethodStringAmount(left_truncated_method);
 
   if (right_truncated_method_string_count !=
       left_truncated_method_string_count) {
@@ -68,19 +51,29 @@ bool SectionSorter::SortingForMethods(const QString &left_method,
   return left_truncated_method < right_truncated_method;
 }
 
-int SectionSorter::MethodParamsAmount(const QString &method) {
-  return method.count(",");
+QString SectionSorter::TruncateCommentsFromMethod(const QString &method) {
+  QStringList split_method = method.split("\n");
+  QString truncated_method;
+  for (auto method_line : split_method) {
+    if (!method_line.contains(QRegExp("^ *\/\/"))) {
+      truncated_method += method_line + "\n";
+    }
+  }
+  return truncated_method;
+}
+
+int SectionSorter::MethodParamsAmount(QString truncated_method) {
+  return truncated_method.count(",");
+}
+
+int SectionSorter::MethodStringAmount(QString truncated_method) {
+  return truncated_method.count("\n");
 }
 
 void SectionSorter::SortMethodsInGroups() {
   for (int i = 0; i < kMethodGroupsAmount; ++i) {
-    if (i >= kStaticNonConstantMembers && i < kConstantMembers) {
-      MemberSorter sorter;
-      sorter.SortMembers(method_groups_[i]);
-    } else {
-      std::sort(method_groups_[i].begin(), method_groups_[i].end(),
-                this->SortingForMethods);
-    }
+    std::sort(method_groups_[i].begin(), method_groups_[i].end(),
+              this->SortingForMethods);
   }
 }
 
@@ -89,16 +82,9 @@ QString SectionSorter::AssembleSortedString() {
   for (int i = 0; i < kMethodGroupsAmount; ++i) {
     QStringList methods = method_groups_.at(i);
     for (auto method : methods) {
-      if (method.count() != 0) {
-        if (method.count("\n") > 0) {
-          method.prepend("\n");
-        }
-        return_string += "\n" + method;
-      }
+      return_string += method + ";\n\n";
     }
-    return_string.append("\n");
   }
-
   return return_string;
 }
 
@@ -137,7 +123,7 @@ void SectionSorter::PlaceMethodsIntoGroups(const QStringList &methods) {
       }
 
       if (method.contains("virtual ") || method.contains(" override")) {
-        if (method.contains(") const", Qt::CaseSensitive)) {
+        if (method.contains(") const ", Qt::CaseSensitive)) {
           AddStringIntoListOfLists(kVirtualConstantMethods, method);
           continue;
         } else {
@@ -149,8 +135,7 @@ void SectionSorter::PlaceMethodsIntoGroups(const QStringList &methods) {
       if (method.contains("operator= ", Qt::CaseSensitive)) {
         AddStringIntoListOfLists(kAssignmentOperators, method);
         continue;
-      } else if (method.contains("const", Qt::CaseSensitive) &&
-                 method.contains("operator ", Qt::CaseSensitive)) {
+      } else if (method.contains("const operator ", Qt::CaseSensitive)) {
         AddStringIntoListOfLists(kConstantOperators, method);
         continue;
       } else if (method.contains(") const", Qt::CaseSensitive)) {
@@ -201,6 +186,11 @@ void SectionSorter::PlaceMethodsIntoGroups(const QStringList &methods) {
       }
     }
   }
+}
+
+QStringList SectionSorter::SplitSectionIntoMethods(
+    const QString &code_section) {
+  return code_section.split(QRegExp("[;\.]\n"));  // NOLINT
 }
 
 void SectionSorter::AddStringIntoListOfLists(int list_index,
