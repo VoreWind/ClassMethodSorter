@@ -3,7 +3,7 @@
 #include <QDebug>
 #include <QStringList>
 
-const QStringList ClassBreaker::section_names = {
+const QStringList ClassBreaker::kSectionNames = {
     "public:",    "signals:",       "public slots:", "protected slots:",
     "protected:", "private slots:", "private:"};
 
@@ -16,7 +16,6 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
     ParsedClass parsed_class;
 
     parsed_class.class_name = FindClassName(block, token_position);
-    qDebug() << parsed_class.class_name;
 
     int open_curvy_brace_position = block.indexOf("{", token_position);
     int next_open_curvy_brace_position = open_curvy_brace_position;
@@ -39,9 +38,10 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
                   close_curvy_brace_position - token_position + 1,
                   "class ##" + parsed_class.class_name + "##");
     parsed_class.class_body = class_block;
+    SplitClassBlockToSections(class_block);
     parsed_class.inner_classes = FindClassBlocksInString(class_block);
     block_class_list.push_back(parsed_class);
-    qDebug() << class_block;
+    //    qDebug() << class_block;
     token_position =
         block.indexOf("class ", close_curvy_brace_position, Qt::CaseSensitive);
   };
@@ -59,9 +59,51 @@ QString ClassBreaker::FindClassName(const QString& block, int token_position) {
 
 QRegExp ClassBreaker::SectionFinderRegExp() {
   QString regexp_string;
-  for (auto section : section_names) {
+  for (auto section : kSectionNames) {
     regexp_string.append(section + "|");
   }
   regexp_string.chop(1);
   return QRegExp(regexp_string);
+}
+
+QList<int> ClassBreaker::BuildSectionPositionList(const QString& class_block) {
+  QList<int> section_positions;
+  QRegExp section_regexp = SectionFinderRegExp();
+  int section_position = class_block.indexOf(section_regexp);
+  while (section_position != -1) {
+    section_positions.push_back(section_position);
+    section_position =
+        class_block.indexOf(section_regexp, section_position + 1);
+  }
+
+  return section_positions;
+}
+
+QVector<QString> ClassBreaker::SplitClassBlockToSections(
+    const QString& class_block) {
+  QList<int> section_positions = BuildSectionPositionList(class_block);
+
+  QVector<QString> sections;
+  sections.resize(kSectionsAmount);
+
+  for (int i = 0; i < section_positions.count(); ++i) {
+    int section_position = section_positions.at(i);
+    int space_position =
+        class_block.indexOf(QRegExp("[ \n]"), section_position);
+    QString section_name =
+        class_block.mid(section_position, space_position - section_position);
+
+    int next_section_position = i + 1 < section_positions.count()
+                                    ? section_positions.at(i + 1) - 1
+                                    : class_block.count();
+
+    QString section = class_block.mid(space_position + 1,
+                                      next_section_position - space_position);
+
+    int section_index = kSectionNames.indexOf(section_name);
+    sections[section_index].append(section);
+    qDebug() << section;
+  }
+
+  return sections;
 }

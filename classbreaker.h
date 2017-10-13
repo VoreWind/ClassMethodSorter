@@ -23,10 +23,15 @@ class ClassBreaker {
   };
 
   static QList<ParsedClass> FindClassBlocksInString(QString& block);
+
+ private:
+  static QList<int> BuildSectionPositionList(const QString& class_block);
   static QString FindClassName(const QString& block, int token_position);
   static QRegExp SectionFinderRegExp();
+  static QVector<QString> SplitClassBlockToSections(const QString& class_block);
 
-  static const QStringList section_names;
+  static const QStringList kSectionNames;
+  static const int kSectionsAmount = 7;
 };
 
 #endif  // CLASSBREAKER_H
