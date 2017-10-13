@@ -3,6 +3,8 @@
 #include <QDebug>
 #include <QStringList>
 
+#include <sectionsorter.h>
+
 const QStringList ClassBreaker::kSectionNames = {
     "public:",    "signals:",       "public slots:", "protected slots:",
     "protected:", "private slots:", "private:"};
@@ -132,6 +134,17 @@ QString ClassBreaker::AssembleBlockBack(ParsedClass parsed_class,
                          assembled_class);
 
   return assembled_class;
+}
+
+void ClassBreaker::SortClassSections(ParsedClass& parsed_class) {
+  for (int i = 0; i < kSectionsAmount; ++i) {
+    auto section = parsed_class.split_class_body.at(i);
+    if (!section.isEmpty()) {
+      SectionSorter sorter(parsed_class.class_name);
+      section = sorter.SortSection(section);
+      parsed_class.split_class_body.replace(i, section);
+    }
+  }
 }
 
 QString ClassBreaker::AssembleBlockFromSections(QVector<QString> sections) {

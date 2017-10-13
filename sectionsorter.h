@@ -10,15 +10,7 @@ class QStringList;
 class SectionSorter {
  public:
   SectionSorter(QString class_name);
-  static bool SortingForMethods(const QString &left_method,
-                                const QString &right_method);
-  static QString TruncateCommentsFromMethod(const QString &method);
-  static int MethodParamsAmount(QString truncated_method);
-
-  static int MethodStringAmount(QString truncated_method);
-  void SortMethodsInGroups();
-  QString AssembleSortedString();
-  void PlaceMethodsIntoGroups(const QStringList &methods);
+  QString SortSection(QString &section);
 
  private:
   enum Blocks {
@@ -48,8 +40,19 @@ class SectionSorter {
     kFriendOperators,
     kFriendMethods,
   };
+
+  static int MethodParamsAmount(QString truncated_method);
+  static int MethodStringAmount(QString truncated_method);
+  static QString TruncateCommentsFromMethod(const QString &method);
+
+  static bool SortingForMethods(const QString &left_method,
+                                const QString &right_method);
+
+  QString AssembleSortedString();
   QStringList SplitSectionIntoMethods(const QString &code_section);
   void AddStringIntoListOfLists(int list_index, const QString &string);
+  void PlaceMethodsIntoGroups(const QStringList &methods);
+  void SortMethodsInGroups();
 
   static const int kMethodGroupsAmount = 23;
 

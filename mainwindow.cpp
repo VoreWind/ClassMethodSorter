@@ -20,24 +20,15 @@ MainWindow::~MainWindow() { delete ui; }
 
 void MainWindow::ReorderText() {
   QString text_section = ui->segment_text_edit->toPlainText();
-  //  text_section = CleanString(text_section);
+  text_section = CleanString(text_section);
   QList<ParsedClass> broken_classes =
       ClassBreaker::FindClassBlocksInString(text_section);
 
   for (auto broken_class : broken_classes) {
+    ClassBreaker::SortClassSections(broken_class);
     ClassBreaker::AssembleBlockBack(broken_class, text_section);
   }
-
   ui->segment_text_edit->setPlainText(text_section);
-}
-
-QString MainWindow::ReorganizeSection(const QString &code_section) {
-  //  QStringList methods = SplitSectionIntoMethods(code_section);
-  //  PlaceMethodsIntoGroups(methods);
-  //  //  qDebug() << method_groups_;
-
-  //  SortMethodsInGroups();
-  //  return AssembleSortedString();
 }
 
 QString MainWindow::CleanString(const QString &string) {
