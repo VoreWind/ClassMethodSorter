@@ -22,7 +22,8 @@ MainWindow::~MainWindow() { delete ui; }
 
 void MainWindow::ReorderText() {
   QString text_section = ui->segment_text_edit->toPlainText();
-  QList<ParsedClass> broken_class =  ClassBreaker::FindClassBlocksInString(text_section);
+  QList<ParsedClass> broken_class =
+      ClassBreaker::FindClassBlocksInString(text_section);
   //    text_section = CleanString(text_section);
   ui->segment_text_edit->setPlainText(ReorganizeSection(text_section));
 }
@@ -74,7 +75,7 @@ bool MainWindow::SortingForMethods(const QString &left_method,
 QString MainWindow::ReorganizeSection(const QString &code_section) {
   QStringList methods = SplitSectionIntoMethods(code_section);
   PlaceMethodsIntoGroups(methods);
-  qDebug() << method_groups_;
+  //  qDebug() << method_groups_;
 
   SortMethodsInGroups();
   return AssembleSortedString();
