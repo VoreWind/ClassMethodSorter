@@ -106,3 +106,17 @@ QVector<QString> ClassBreaker::SplitClassBlockToSections(
 
   return sections;
 }
+
+QString ClassBreaker::AssembleBlockBack(ParsedClass parsed_class,
+                                        QString& initial_string) {
+  QString assembled_class;
+
+  return assembled_class;
+}
+
+QString ClassBreaker::AssembleSectionsBack(QVector<QString> sections) {
+  for (auto section : sections) {
+    if (!section.isEmpty()) {
+    }
+  }
+}
