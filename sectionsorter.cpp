@@ -22,11 +22,11 @@ bool SectionSorter::SortingForMethods(const QString &left_method,
   int right_method_string_count = MethodStringAmount(right_method);
   int left_method_string_count = MethodStringAmount(left_method);
 
-  if (right_method_string_count == 1 && left_method_string_count == 1) {
+  if (right_method_string_count == 0 && left_method_string_count == 0) {
     return left_method < right_method;
   }
 
-  if (right_method_string_count == 1 || left_method_string_count == 1) {
+  if (right_method_string_count == 0 || left_method_string_count == 0) {
     return left_method_string_count < right_method_string_count;
   }
 
@@ -89,10 +89,15 @@ QString SectionSorter::AssembleSortedString() {
   for (int i = 0; i < kMethodGroupsAmount; ++i) {
     QStringList methods = method_groups_.at(i);
     for (auto method : methods) {
-      return_string += method + ";\n\n";
+      if (method.contains("\n")) {
+        method.prepend("\n");
+      }
+      return_string += method + "\n";
     }
+    return_string.append("\n");
   }
-  return return_string;
+
+  return CleanString(return_string);
 }
 
 void SectionSorter::PlaceMethodsIntoGroups(const QStringList &methods) {
@@ -197,10 +202,26 @@ void SectionSorter::PlaceMethodsIntoGroups(const QStringList &methods) {
 
 QStringList SectionSorter::SplitSectionIntoMethods(
     const QString &code_section) {
-  return code_section.split(QRegExp("[;\.]\n"));  // NOLINT
+  QRegExp splitter("(;\n)|(\\.\n)");
+  QStringList list;
+  for (int i = 0; i < code_section.count(splitter); ++i) {
+    list << code_section.section(splitter, i, i,
+                                 QString::SectionIncludeTrailingSep);
+  }
+  return list;
 }
 
 void SectionSorter::AddStringIntoListOfLists(int list_index,
                                              const QString &string) {
   method_groups_[list_index].push_back(string);
+}
+
+QString SectionSorter::CleanString(const QString &string,
+                                   const QString &clutter_token,
+                                   const QString &clered_token) {
+  QString clean_string = string;
+  while (clean_string.contains(clutter_token)) {
+    clean_string.replace(clutter_token, clered_token);
+  }
+  return clean_string;
 }

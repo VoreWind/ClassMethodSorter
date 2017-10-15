@@ -12,6 +12,8 @@ class SectionSorter {
   SectionSorter(QString class_name);
   QString SortSection(QString &section);
 
+  static QString CleanString(const QString &string, const QString &clutter_token = "\n\n\n", const QString &clered_token = "\n\n");
+
  private:
   enum Blocks {
     kUsingDirectives,

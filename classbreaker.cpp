@@ -152,8 +152,7 @@ QString ClassBreaker::AssembleBlockFromSections(QVector<QString> sections) {
   for (int i = 0; i < sections.count(); ++i) {
     QString section = sections.at(i);
     if (!section.isEmpty()) {
-      section.prepend(" " + kSectionNames.at(i) + "\n");
-      section.append("\n");
+      section.prepend(" " + kSectionNames.at(i));
       assembled_block.append(section);
     }
   }
