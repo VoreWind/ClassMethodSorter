@@ -8,6 +8,7 @@
 #include <QString>
 
 #include <classbreaker.h>
+#include <sectionsorter.h>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
@@ -20,7 +21,7 @@ MainWindow::~MainWindow() { delete ui; }
 
 void MainWindow::ReorderText() {
   QString text_section = ui->segment_text_edit->toPlainText();
-  text_section = CleanString(text_section);
+  text_section = SectionSorter::CleanString(text_section, "\n\n", "\n");
   QList<ParsedClass> broken_classes =
       ClassBreaker::FindClassBlocksInString(text_section);
 
@@ -28,13 +29,6 @@ void MainWindow::ReorderText() {
     ClassBreaker::SortClassSections(broken_class);
     ClassBreaker::AssembleBlockBack(broken_class, text_section);
   }
-  ui->segment_text_edit->setPlainText(text_section);
-}
-
-QString MainWindow::CleanString(const QString &string) {
-  QString clean_string = string;
-  while (clean_string.contains("\n\n")) {
-    clean_string.replace("\n\n", "\n");
-  }
-  return clean_string;
+  ui->segment_text_edit->setPlainText(
+      SectionSorter::CleanString(text_section, "\n\n\n", "\n\n"));
 }
