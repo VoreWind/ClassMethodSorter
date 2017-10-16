@@ -52,6 +52,14 @@ class XmlRegions {
     int GetHerpDerp();
   };
 
+  class SetterClass {
+   public:
+    SetterClass();
+    ~SetterClass();
+
+    bool SetBlahBhah(QMap&lt;QString, QString&gt; &amp;regions) const;
+    int SettHerpDerp();
+  };
   bool SetIndexDefaultValue(int index);
 
   bool have_error_ = false;
