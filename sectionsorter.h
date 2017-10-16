@@ -12,7 +12,9 @@ class SectionSorter {
   SectionSorter(QString class_name);
   QString SortSection(QString &section);
 
-  static QString CleanString(const QString &string, const QString &clutter_token = "\n\n\n", const QString &clered_token = "\n\n");
+  static QString CleanString(const QString &string,
+                             const QString &clutter_token = "\n\n\n",
+                             const QString &clered_token = "\n\n");
 
  private:
   enum Blocks {
@@ -43,8 +45,8 @@ class SectionSorter {
     kFriendMethods,
   };
 
-  static int MethodParamsAmount(QString truncated_method);
-  static int MethodStringAmount(QString truncated_method);
+  static int MethodParamsAmount(const QString &method);
+  static int MethodStringAmount(const QString &method);
   static QString TruncateCommentsFromMethod(const QString &method);
 
   static bool SortingForMethods(const QString &left_method,

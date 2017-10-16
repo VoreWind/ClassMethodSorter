@@ -1,5 +1,6 @@
 #include "sectionsorter.h"
 
+#include <QDebug>
 #include <QString>
 #include <QStringList>
 
@@ -37,6 +38,10 @@ bool SectionSorter::SortingForMethods(const QString &left_method,
     return left_method_params_count < right_method_params_count;
   }
 
+  if (right_method_string_count != left_method_string_count) {
+    return left_method_string_count < right_method_string_count;
+  }
+
   int right_truncated_method_string_count =
       MethodStringAmount(right_truncated_method);
   int left_truncated_method_string_count =
@@ -69,12 +74,12 @@ QString SectionSorter::TruncateCommentsFromMethod(const QString &method) {
   return truncated_method;
 }
 
-int SectionSorter::MethodParamsAmount(QString truncated_method) {
-  return truncated_method.count(",");
+int SectionSorter::MethodParamsAmount(const QString &method) {
+  return method.count(",");
 }
 
-int SectionSorter::MethodStringAmount(QString truncated_method) {
-  return truncated_method.count("\n");
+int SectionSorter::MethodStringAmount(const QString &method) {
+  return method.count("\n");
 }
 
 void SectionSorter::SortMethodsInGroups() {
@@ -92,7 +97,7 @@ QString SectionSorter::AssembleSortedString() {
       if (method.contains("\n")) {
         method.prepend("\n");
       }
-      return_string += method + "\n";
+      return_string += method;
     }
     return_string.append("\n");
   }
@@ -202,7 +207,8 @@ void SectionSorter::PlaceMethodsIntoGroups(const QStringList &methods) {
 
 QStringList SectionSorter::SplitSectionIntoMethods(
     const QString &code_section) {
-  QRegExp splitter("(;\n)|(\\.\n)");
+  QRegExp splitter("(;\n)|(;.*\\.\n)");
+  splitter.setMinimal(true);
   QStringList list;
   for (int i = 0; i < code_section.count(splitter); ++i) {
     list << code_section.section(splitter, i, i,
