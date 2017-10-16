@@ -25,234 +25,50 @@
     <item row="0" column="0">
      <widget class="QPlainTextEdit" name="segment_text_edit">
       <property name="plainText">
-       <string>#ifndef CRYPTADMIN_H
-#define CRYPTADMIN_H
+       <string>#ifndef XMLREGIONS_H
+#define XMLREGIONS_H
 
-#include &lt;cryptmethods.h&gt;
-
-#include &lt;QDateTime&gt;
+#include &lt;QComboBox&gt;
 #include &lt;QMap&gt;
-#include &lt;QString&gt;
-#include &lt;QStringList&gt;
+#include &lt;QXmlStreamReader&gt;
+#include &lt;QXmlStreamWriter&gt;
 
-#include &lt;libcert.h&gt;
-#include &lt;pkiparse.h&gt;
+class QFile;
 
-class CryptAdmin : public CryptMethods {
+// Название класса не отражает его предназначение.
+class XmlRegions {
  public:
-  static buff_t InterpretQByteArrayAsBufft(const QByteArray &amp;data_byte_array);
-  static int FindCrl(const QByteArray &amp;raw_cert, const QList&lt;QByteArray&gt; &amp;crls);
-  static QByteArray ConvertBufftToQByteArray(const buff_t *data_buffer);
+ XmlRegions();
+  ~XmlRegions();
+  bool GetRegionsDictionary(QMap&lt;QString, QString&gt; &amp;regions) const;
+  int GetIndexDefaultValue() const;
 
-  static bool GetValidPeriodForCertificate(const cert_t &amp;cert,
-                                           time_t &amp;validity_period);
+  class InlineClass {
+   public:
+    InlineClass();
+    ~InlineClass();
 
-  static int GetRequestCert(const QByteArray &amp;raw_request,
-                            QByteArray &amp;certificate);
-
-  CryptAdmin();
-  ~CryptAdmin();
-
-  int CryptConnect(QByteArray params_dict,
-                   bool is_remote_vcp = false,
-                   const QString &amp;config_path = kDefaultConfigPath);
-  int CryptDisconnect();
-
-  int PrivKeyRead(
-      const QString &amp;password,
-      const QByteArray &amp;open_key,
-      const QString &amp;serial_of_certificate_corresponding_to_open_key,
-      int &amp;usage_count);
-
-  int PrivKeyWrite(const QString &amp;password, const QString &amp;device_id);
-  int PrivKeyWrite(const QString &amp;password);
-
-  int PrivKeyClear();
-
-// Test comment CertRequest.
-  int CertRequest(const QByteArray &amp;raw_ca_cert,
-                  const CRequest &amp;request,
-                  const CertTemplate &amp;cert_template,
-                  QByteArray &amp;raw_request);  /// Генерирует ключ.
-  int CrossCertRequest(const QByteArray &amp;other_ca_cert,
-                       const QByteArray &amp;own_ca_cert,
-                       const CertTemplate &amp;cert_template,
-                       QByteArray &amp;raw_request);
-  int MakeRequestOfCrossCertificate(
-      const QByteArray &amp;other_ca_cert,
-      const QByteArray &amp;own_ca_cert,
-      const QList&lt;QByteArray&gt; &amp;all_own_ca_certificates,
-      const CertTemplate &amp;cert_template,
-      QByteArray &amp;raw_request);
-  int RevokeRequest(const QByteArray &amp;raw_ca_cert,
-                    const QByteArray &amp;raw_cert,
-                    const QString &amp;password,
-                    QByteArray &amp;raw_request,
-                    const int reason = 5);
-  int StopRequest(const QByteArray &amp;raw_ca_cert,
-                  const QByteArray &amp;raw_cert,
-                  const QString &amp;password,
-                  const QDate &amp;date,
-                  QByteArray &amp;raw_request);
-  int StartRequest(const QByteArray &amp;raw_ca_cert,
-                   const QByteArray &amp;raw_cert,
-                   const QString &amp;password,
-                   QByteArray &amp;raw_request);
-
-  int MakeRootCert(const CRequest &amp;request,
-                   const CertTemplate &amp;cert_template,
-                   QByteArray &amp;raw_cert);  /// Генерирует ключ.
-  int MakeCert(const QByteArray &amp;raw_request,
-               unsigned long long number,
-               QByteArray &amp;raw_cert);
-  int MakeCrl(const QByteArray &amp;raw_ca_cert,
-              unsigned long long crl_number,
-              unsigned long long crl_base_number,
-              const QList&lt;QStringList&gt; &amp;bad_certs,
-              QByteArray &amp;raw_crl,
-              const QList&lt;int&gt; &amp;reasons = QList&lt;int&gt;());
-
-  int MakeSign(const QByteArray &amp;data, QByteArray &amp;sign);
-
-  int MakeHash(const QByteArray &amp;cert,
-               const QByteArray &amp;data,
-               QByteArray &amp;hash);
-
-  int CheckCert(const QByteArray &amp;raw_user_cert,
-                const QByteArray &amp;raw_ca_cert,
-                const QByteArray &amp;raw_crl,
-                const QByteArray &amp;raw_ca_cert_for_crl,
-                QString &amp;reason_invalidity_certificate);
-
-  int CheckCert(const QByteArray &amp;raw_user_cert,
-                const QByteArray &amp;raw_ca_cert,
-                const QByteArray &amp;raw_crl,
-                const QByteArray &amp;raw_ca_cert_for_crl);
-
-  int CheckRequest(const QByteArray &amp;raw_request);
-
-  int CheckCrl(const QByteArray &amp;raw_crl, const QByteArray &amp;raw_ca_cert);
-
-  int CheckSign(const QByteArray &amp;raw_cert,
-                const QByteArray &amp;data,
-                const QByteArray &amp;sign);
-
-  int ResignRequest(const QByteArray &amp;raw_request,
-                    const QByteArray &amp;raw_user_cert,
-                    QByteArray &amp;new_request);
-
-  int GetCertChain(QList&lt;QByteArray&gt; &amp;raw_certs, QList&lt;QByteArray&gt; &amp;raw_crls);
-
-  int DecomposeInfo(QStringList &amp;group_names,
-                    QList&lt;int&gt; &amp;max_count,
-                    QList&lt;int&gt; &amp;compose_count);
-  int DecomposeKey();
-
-  int WriteKeyPart(
-      int group_number,
-      int user_number,
-      const QString &amp;password,
-      const QByteArray &amp;open_key,
-      const QString &amp;serial_of_certificate_corresponding_to_open_key);
-
-  int ReadKeyPart(
-      int group_number,
-      int user_number,
-      const QString &amp;password,
-      const QByteArray &amp;open_key,
-      const QString &amp;serial_of_certificate_corresponding_to_open_key);
-
-  int ComposeKey();
-
-  int ShowRemoteDialog(const QString &amp;message, QString &amp;answer);
-
-  int CertHashInfo(const QByteArray &amp;raw_cert,
-                   QString &amp;hash_algorithm,
-                   QString &amp;hash_param);
-
-  int GetRandom(const QString &amp;rand_type, int size, QByteArray &amp;rand);
-
-  QString GeneratePin(int length_of_password);
-
-  int GetUctKeyFromSecret(QByteArray &amp;key);
-
-  bool IsKeyExists() const;
-  QByteArray GetRawSignKey();
-
-  int SignContainerOfCryptographicParameters(
-      const QByteArray &amp;container_parameters,
-      const QByteArray &amp;ca_certificate,
-      QByteArray &amp;signed_container_parameters);
-
-  enum ContainersType {
-    kNotEncrypted = 0,
-    kEncrypted = 1,
-    kPkcs = 2,
-    kUnknown = 3
+    bool GetBlahBhah(QMap&lt;QString, QString&gt; &amp;regions) const;
+    int GetHerpDerp();
   };
-  ContainersType GetContainersType() const;
+
+  bool SetIndexDefaultValue(int index);
+
+  bool have_error_ = false;
+
+  // Множественные ответственности у класса.
+  void CreateRegionComboBox(QComboBox &amp;combo_box_region) const;
 
  private:
-  static const QString kDefaultConfigPath;
+  void private_ErrorHandler(const QString &amp;description);
 
-  static int AddIssuerSerialToCert(const char *issuer_serial,
-                                   int issuer_serial_size,
-                                   cert_t &amp;cert);
-  static int AddIssuerSerialToCrl(const char *issuer_serial,
-                                  int issuer_serial_size,
-                                  crl_t &amp;crl);
-  static int AddIssuerSerialToRequest(const char *issuer_serial,
-                                      int issuer_serial_size,
-                                      req_t &amp;req);
-  static int AddIssuerSerialToExtensions(char const *issuer_serial,
-                                         int issuer_serial_size,
-                                         cert_ext_t **extensions,
-                                         unsigned long *count_of_extension);
+  QFile *file_ = nullptr;
 
-  int PrivKeyRead(const QString &amp;password,
-                  const QByteArray &amp;open_key,
-                  int &amp;usage_count);
-  int ReadKeyPart(int group_number,
-                  int user_number,
-                  const QString &amp;password,
-                  const QByteArray &amp;open_key);
-  int WriteKeyPart(int group_number,
-                   int user_number,
-                   const QString &amp;password,
-                   const QByteArray &amp;open_key);
-  bool IsCryptoAndOperationLoaded() const;
-
-  int MeshingCrl(QList&lt;QByteArray&gt; &amp;crls);
-  int DivCheckCrl(const CCertificate &amp;cert, const QString &amp;crl_number);
-
-  QMap&lt;QString, QByteArray&gt; delta_crls_;
-  QMap&lt;QString, QList&lt;QByteArray&gt; &gt; distributed_crls_;
-  QString serial_of_certificate_corresponding_to_open_key_;
-
-  QString key_device_id_;
-  QString key_syntax_id_;
-  QString key_random_id_;
-  int key_usage_count_ = 0;
-  time_t key_timeout_ = 0;
-
-  QString compose_algorithm_id_;
-  QString compose_device_id_;
-  QString compose_syntax_id_;
-  int compose_usage_count_ = 0;
-  time_t compose_timeout_ = 0;
-  QList&lt;int&gt; compose_parts_;
-
-  QString sign_random_id_;
-  time_t cert_validity_ = 0;
-  time_t crl_update_ = 0;
-
-  int operation_loaded_ = 0;
-  int compose_loaded_ = 0;
-  int crypto_loaded_ = 0;
-  int key_loaded_ = 0;
+  QXmlStreamReader xml_on_index_position_;  // Несоответсвие имени переменной её
+                                            // функциональности.
 };
 
-#endif  // CRYPTADMIN_H
+#endif  // XMLREGIONS_H
 </string>
       </property>
      </widget>
