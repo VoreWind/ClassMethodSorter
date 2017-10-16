@@ -45,12 +45,13 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
                   close_curvy_brace_position - token_position + 1,
                   "class ##" + parsed_class.class_name + "##");
 
+    qDebug() << class_block;
+
     parsed_class.inner_classes = FindClassBlocksInString(class_block);
     parsed_class.split_class_body = SplitClassBlockToSections(class_block);
     block_class_list.push_back(parsed_class);
 
-    token_position =
-        block.indexOf("class ", close_curvy_brace_position, Qt::CaseSensitive);
+    token_position = block.indexOf(class_token_regexp);
   };
   return block_class_list;
 }
@@ -144,7 +145,6 @@ void ClassBreaker::SortClassSections(ParsedClass& parsed_class) {
   for (int i = 0; i < kSectionsAmount; ++i) {
     auto section = parsed_class.split_class_body.at(i);
     if (!section.isEmpty()) {
-      qDebug() << section;
       SectionSorter sorter(parsed_class.class_name);
       section = sorter.SortSection(section);
       parsed_class.split_class_body.replace(i, section);
