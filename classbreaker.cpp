@@ -11,7 +11,10 @@ const QStringList ClassBreaker::kSectionNames = {
 
 QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
   QList<ParsedClass> block_class_list;
-  int token_position = block.indexOf("class ", Qt::CaseSensitive);
+  QRegExp class_token_regexp("(class)[^;]*\\{\n", Qt::CaseSensitive);
+  class_token_regexp.setMinimal(true);
+
+  int token_position = block.indexOf(class_token_regexp);
 
   while (token_position != -1) {
     QString class_block;
@@ -32,18 +35,20 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
 
       if (next_open_curvy_brace_position > close_curvy_brace_position ||
           next_open_curvy_brace_position == -1) {
-        class_block = block.mid(token_position,
-                                close_curvy_brace_position - token_position);
+        class_block = block.mid(
+            open_curvy_brace_position + 2,
+            close_curvy_brace_position - open_curvy_brace_position - 2);
         break;
       }
     };
     block.replace(token_position,
                   close_curvy_brace_position - token_position + 1,
                   "class ##" + parsed_class.class_name + "##");
-    parsed_class.split_class_body = SplitClassBlockToSections(class_block);
+
     parsed_class.inner_classes = FindClassBlocksInString(class_block);
+    parsed_class.split_class_body = SplitClassBlockToSections(class_block);
     block_class_list.push_back(parsed_class);
-    //    qDebug() << class_block;
+
     token_position =
         block.indexOf("class ", close_curvy_brace_position, Qt::CaseSensitive);
   };
@@ -112,7 +117,6 @@ QVector<QString> ClassBreaker::SplitClassBlockToSections(
 
     int section_index = kSectionNames.indexOf(section_name);
     sections[section_index].append(section);
-    qDebug() << section;
   }
 
   return sections;
@@ -140,10 +144,17 @@ void ClassBreaker::SortClassSections(ParsedClass& parsed_class) {
   for (int i = 0; i < kSectionsAmount; ++i) {
     auto section = parsed_class.split_class_body.at(i);
     if (!section.isEmpty()) {
+      qDebug() << section;
       SectionSorter sorter(parsed_class.class_name);
       section = sorter.SortSection(section);
       parsed_class.split_class_body.replace(i, section);
     }
+  }
+
+  for (int i = 0; i < parsed_class.inner_classes.count(); ++i) {
+    auto subclass = parsed_class.inner_classes.at(i);
+    SortClassSections(subclass);
+    parsed_class.inner_classes.replace(i, subclass);
   }
 }
 
