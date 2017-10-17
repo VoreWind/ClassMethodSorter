@@ -67,7 +67,56 @@ void MemberSorter::AddStringIntoListOfLists(int list_index,
   member_groups_[list_index].push_back(string);
 }
 
-void MemberSorter::PlaceMembersIntoGroups(const QStringList &members) {}
+void MemberSorter::PlaceMembersIntoGroups(const QStringList &members) {
+  for (auto member : members) {
+    if (member.contains("*")) {
+      if (member.contains("<")) {
+        AddStringIntoListOfLists(kPointerContainers, member);
+        continue;
+      } else {
+        AddStringIntoListOfLists(kPointers, member);
+        continue;
+      }
+    }
+
+    if (member.contains("&")) {
+      if (member.contains("<")) {
+        AddStringIntoListOfLists(kReferenceWrapperContainers, member);
+        continue;
+      } else {
+        AddStringIntoListOfLists(kReferences, member);
+        continue;
+      }
+    }
+
+    if (member.contains("Pointer", Qt::CaseSensitive) ||
+        member.contains("_ptr", Qt::CaseSensitive)) {
+      if (member.contains("<")) {
+        AddStringIntoListOfLists(kSmartPointersContainers, member);
+        continue;
+      } else {
+        AddStringIntoListOfLists(kSmartPointers, member);
+        continue;
+      }
+    }
+
+    if (member.contains("QString", Qt::CaseSensitive) ||
+        member.contains("QByteArray", Qt::CaseSensitive) ||
+        member.contains("QStringList", Qt::CaseSensitive) ||
+        member.contains("std::string", Qt::CaseSensitive)) {
+      AddStringIntoListOfLists(kContainersUsedLikeValues, member);
+      continue;
+    }
+
+    if (member.contains("<")) {
+      AddStringIntoListOfLists(kValueContainers, member);
+      continue;
+    } else {
+      AddStringIntoListOfLists(kValues, member);
+      continue;
+    }
+  }
+}
 
 void MemberSorter::SortMethodsInGroups() {
   for (int i = 0; i < kMemberGroupsAmount; ++i) {

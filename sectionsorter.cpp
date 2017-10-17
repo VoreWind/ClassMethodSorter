@@ -125,7 +125,7 @@ void SectionSorter::PlaceMethodsIntoGroups(const QStringList &methods) {
       }
 
       if (method.contains("virtual ") || method.contains(" override")) {
-        if (method.contains(") const ", Qt::CaseSensitive)) {
+        if (method.contains(") const", Qt::CaseSensitive)) {
           AddStringIntoListOfLists(kVirtualConstantMethods, method);
           continue;
         } else {
