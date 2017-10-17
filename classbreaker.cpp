@@ -104,17 +104,17 @@ QVector<QString> ClassBreaker::SplitClassBlockToSections(
 
   for (int i = 0; i < section_positions.count(); ++i) {
     int section_position = section_positions.at(i);
-    int space_position =
-        class_block.indexOf(QRegExp("[ \n]"), section_position);
+    int colon_position = class_block.indexOf(":", section_position);
+    colon_position++;
     QString section_name =
-        class_block.mid(section_position, space_position - section_position);
+        class_block.mid(section_position, colon_position - section_position);
 
     int next_section_position = i + 1 < section_positions.count()
                                     ? section_positions.at(i + 1) - 1
                                     : class_block.count();
 
-    QString section = class_block.mid(space_position + 1,
-                                      next_section_position - space_position);
+    QString section = class_block.mid(colon_position + 1,
+                                      next_section_position - colon_position);
 
     int section_index = kSectionNames.indexOf(section_name);
     sections[section_index].append(section);
