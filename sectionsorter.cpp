@@ -9,7 +9,7 @@ SectionSorter::SectionSorter(QString class_name) : class_name_(class_name) {
 }
 
 QString SectionSorter::SortSection(QString &section) {
-  auto methods = SplitSectionIntoMethods(section);
+  auto methods = SplitSectionIntoElements(section);
   PlaceMethodsIntoGroups(methods);
   SortMethodsInGroups();
   return AssembleSortedString();
@@ -17,17 +17,17 @@ QString SectionSorter::SortSection(QString &section) {
 
 bool SectionSorter::SortingForMethods(const QString &left_method,
                                       const QString &right_method) {
-  QString left_truncated_method = TruncateCommentsFromMethod(left_method);
-  QString right_truncated_method = TruncateCommentsFromMethod(right_method);
+  QString left_truncated_method = TruncateCommentsFromElement(left_method);
+  QString right_truncated_method = TruncateCommentsFromElement(right_method);
 
-  int right_method_string_count = MethodStringAmount(right_method);
-  int left_method_string_count = MethodStringAmount(left_method);
+  int right_method_string_count = ElementStringAmount(right_method);
+  int left_method_string_count = ElementStringAmount(left_method);
 
-  if (right_method_string_count == 0 && left_method_string_count == 0) {
+  if (right_method_string_count == 1 && left_method_string_count == 1) {
     return left_method < right_method;
   }
 
-  if (right_method_string_count == 0 || left_method_string_count == 0) {
+  if (right_method_string_count == 1 || left_method_string_count == 1) {
     return left_method_string_count < right_method_string_count;
   }
 
@@ -43,9 +43,9 @@ bool SectionSorter::SortingForMethods(const QString &left_method,
   }
 
   int right_truncated_method_string_count =
-      MethodStringAmount(right_truncated_method);
+      ElementStringAmount(right_truncated_method);
   int left_truncated_method_string_count =
-      MethodStringAmount(left_truncated_method);
+      ElementStringAmount(left_truncated_method);
 
   if (right_truncated_method_string_count !=
       left_truncated_method_string_count) {
@@ -63,23 +63,8 @@ bool SectionSorter::SortingForMethods(const QString &left_method,
   return left_truncated_method < right_truncated_method;
 }
 
-QString SectionSorter::TruncateCommentsFromMethod(const QString &method) {
-  QStringList split_method = method.split("\n");
-  QString truncated_method;
-  for (auto method_line : split_method) {
-    if (!method_line.contains(QRegExp("^ *\/\/"))) {
-      truncated_method += method_line + "\n";
-    }
-  }
-  return truncated_method;
-}
-
 int SectionSorter::MethodParamsAmount(const QString &method) {
   return method.count(",");
-}
-
-int SectionSorter::MethodStringAmount(const QString &method) {
-  return method.count("\n");
 }
 
 void SectionSorter::SortMethodsInGroups() {
@@ -94,7 +79,7 @@ QString SectionSorter::AssembleSortedString() {
   for (int i = 0; i < kMethodGroupsAmount; ++i) {
     QStringList methods = method_groups_.at(i);
     for (auto method : methods) {
-      if (method.contains("\n")) {
+      if (method.count("\n") > 1) {
         method.prepend("\n");
       }
       return_string += method;
@@ -206,29 +191,7 @@ void SectionSorter::PlaceMethodsIntoGroups(const QStringList &methods) {
   }
 }
 
-QStringList SectionSorter::SplitSectionIntoMethods(
-    const QString &code_section) {
-  QRegExp splitter("(;\n)|(;.*\\.\n)");
-  splitter.setMinimal(true);
-  QStringList list;
-  for (int i = 0; i < code_section.count(splitter); ++i) {
-    list << code_section.section(splitter, i, i,
-                                 QString::SectionIncludeTrailingSep);
-  }
-  return list;
-}
-
 void SectionSorter::AddStringIntoListOfLists(int list_index,
                                              const QString &string) {
   method_groups_[list_index].push_back(string);
-}
-
-QString SectionSorter::CleanString(const QString &string,
-                                   const QString &clutter_token,
-                                   const QString &clered_token) {
-  QString clean_string = string;
-  while (clean_string.contains(clutter_token)) {
-    clean_string.replace(clutter_token, clered_token);
-  }
-  return clean_string;
 }

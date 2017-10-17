@@ -5,6 +5,8 @@
 
 Sorter::Sorter() {}
 
+void Sorter::SortElements(QString &section) {}
+
 int Sorter::ElementStringAmount(const QString &element) {
   return element.count("\n");
 }
@@ -25,9 +27,8 @@ QStringList Sorter::SplitSectionIntoElements(const QString &code_section) {
   splitter.setMinimal(true);
   QStringList list;
   for (int i = 0; i < code_section.count(splitter); ++i) {
-    list << code_section
-                .section(splitter, i, i, QString::SectionIncludeTrailingSep)
-                .trimmed();
+    list << code_section.section(splitter, i, i,
+                                 QString::SectionIncludeTrailingSep);
   }
   return list;
 }

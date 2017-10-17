@@ -8,6 +8,7 @@ class QStringList;
 class Sorter {
  public:
   Sorter();
+  void SortElements(QString &section);
   static int ElementStringAmount(const QString &element);
   static QString TruncateCommentsFromElement(const QString &element);
   static QStringList SplitSectionIntoElements(const QString &code_section);

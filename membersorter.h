@@ -11,15 +11,13 @@ class QStringList;
 class MemberSorter : public Sorter {
  public:
   MemberSorter();
-  QString SortMembers(QStringList &split_section);
 
  private:
   enum MemberTypes {
     kReferences,
     kReferenceWrappers,
-    kReferenceWrapperContainers,
+    kReferenceWrappersContainers,
     kPointers,
-    kPointerContainers,
     kSmartPointers,
     kSmartPointersContainers,
     kValues,
@@ -29,15 +27,17 @@ class MemberSorter : public Sorter {
     kFunctionalObjectsContainers
   };
 
+  QString SortMembers(QString &section);
+
   static bool SortingForMembers(const QString &left_member,
                                 const QString &right_member);
 
   QString AssembleSortedString();
   void AddStringIntoListOfLists(int list_index, const QString &string);
   void PlaceMembersIntoGroups(const QStringList &members);
-  void SortMembersInGroups();
+  void SortMethodsInGroups();
 
-  static const int kMemberGroupsAmount = 13;
+  static const int kMemberGroupsAmount = 12;
 
   QVector<QStringList> member_groups_;
 };

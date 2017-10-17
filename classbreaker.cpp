@@ -28,9 +28,9 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
     int close_curvy_brace_position = open_curvy_brace_position;
 
     while (true) {
-      if (block.indexOf("};", close_curvy_brace_position + 1) != -1) {
+      if (block.indexOf("}", close_curvy_brace_position + 1) != -1) {
         close_curvy_brace_position =
-            block.indexOf("};", close_curvy_brace_position + 1);
+            block.indexOf("}", close_curvy_brace_position + 1);
       }
       next_open_curvy_brace_position =
           block.indexOf("{", next_open_curvy_brace_position + 1);
