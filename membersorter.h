@@ -16,8 +16,9 @@ class MemberSorter : public Sorter {
   enum MemberTypes {
     kReferences,
     kReferenceWrappers,
-    kReferenceWrappersContainers,
+    kReferenceWrapperContainers,
     kPointers,
+    kPointerContainers,
     kSmartPointers,
     kSmartPointersContainers,
     kValues,
@@ -37,7 +38,7 @@ class MemberSorter : public Sorter {
   void PlaceMembersIntoGroups(const QStringList &members);
   void SortMethodsInGroups();
 
-  static const int kMemberGroupsAmount = 12;
+  static const int kMemberGroupsAmount = 13;
 
   QVector<QStringList> member_groups_;
 };
