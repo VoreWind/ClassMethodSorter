@@ -152,7 +152,8 @@ void SectionSorter::PlaceMethodsIntoGroups(const QStringList &methods) {
       if (method.contains("operator= ", Qt::CaseSensitive)) {
         AddStringIntoListOfLists(kAssignmentOperators, method);
         continue;
-      } else if (method.contains("const operator ", Qt::CaseSensitive)) {
+      } else if (method.contains("const", Qt::CaseSensitive) &&
+                 method.contains("operator ", Qt::CaseSensitive)) {
         AddStringIntoListOfLists(kConstantOperators, method);
         continue;
       } else if (method.contains(") const", Qt::CaseSensitive)) {
