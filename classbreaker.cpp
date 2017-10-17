@@ -11,7 +11,7 @@ const QStringList ClassBreaker::kSectionNames = {
 
 QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
   QList<ParsedClass> block_class_list;
-  QRegExp class_token_regexp("(class)[^;]*\\{\n", Qt::CaseSensitive);
+  QRegExp class_token_regexp("(class|struct)[^;]*\\{\n", Qt::CaseSensitive);
   class_token_regexp.setMinimal(true);
 
   int token_position = block.indexOf(class_token_regexp);
@@ -28,8 +28,10 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
     int close_curvy_brace_position = open_curvy_brace_position;
 
     while (true) {
-      close_curvy_brace_position =
-          block.indexOf("};", close_curvy_brace_position + 1);
+      if (block.indexOf("};", close_curvy_brace_position + 1) != -1) {
+        close_curvy_brace_position =
+            block.indexOf("};", close_curvy_brace_position + 1);
+      }
       next_open_curvy_brace_position =
           block.indexOf("{", next_open_curvy_brace_position + 1);
 
@@ -44,8 +46,6 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
     block.replace(token_position,
                   close_curvy_brace_position - token_position + 1,
                   "class ##" + parsed_class.class_name + "##");
-
-    qDebug() << class_block;
 
     parsed_class.inner_classes = FindClassBlocksInString(class_block);
     parsed_class.split_class_body = SplitClassBlockToSections(class_block);

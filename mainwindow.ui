@@ -25,58 +25,18 @@
     <item row="0" column="0">
      <widget class="QPlainTextEdit" name="segment_text_edit">
       <property name="plainText">
-       <string>#ifndef XMLREGIONS_H
-#define XMLREGIONS_H
+       <string>#ifndef PKIPARSE_H
+#define PKIPARSE_H
 
-#include &lt;QComboBox&gt;
-#include &lt;QMap&gt;
-#include &lt;QXmlStreamReader&gt;
-#include &lt;QXmlStreamWriter&gt;
-
-class QFile;
-
-// Название класса не отражает его предназначение.
-class XmlRegions {
+class CCertificate {
  public:
- XmlRegions();
-  ~XmlRegions();
-  bool GetRegionsDictionary(QMap&lt;QString, QString&gt; &amp;regions) const;
-  int GetIndexDefaultValue() const;
-
-  class InlineClass {
-   public:
-    InlineClass();
-    ~InlineClass();
-
-    bool GetBlahBhah(QMap&lt;QString, QString&gt; &amp;regions) const;
-    int GetHerpDerp();
-  };
-
-  class SetterClass {
-   public:
-    SetterClass();
-    ~SetterClass();
-
-    bool SetBlahBhah(QMap&lt;QString, QString&gt; &amp;regions) const;
-    int SettHerpDerp();
-  };
-  bool SetIndexDefaultValue(int index);
-
-  bool have_error_ = false;
-
-  // Множественные ответственности у класса.
-  void CreateRegionComboBox(QComboBox &amp;combo_box_region) const;
-
- private:
-  void private_ErrorHandler(const QString &amp;description);
-
-  QFile *file_ = nullptr;
-
-  QXmlStreamReader xml_on_index_position_;  // Несоответсвие имени переменной её
-                                            // функциональности.
+  ReturnInfo* CheckOcsp(
+      const CCertificate&amp; root_certificate,
+      const bool msvs_marker,
+      const QStringList&amp; alter_crl_distribution_points_urls = {}) const;
 };
 
-#endif  // XMLREGIONS_H
+#endif  // PKIPARSE_H
 </string>
       </property>
      </widget>
