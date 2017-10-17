@@ -15,7 +15,7 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="2" column="0">
+    <item row="1" column="0">
      <widget class="QPushButton" name="sort_button">
       <property name="text">
        <string>Sort</string>
@@ -38,13 +38,6 @@ class CCertificate {
 
 #endif  // PKIPARSE_H
 </string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QLineEdit" name="class_name_line">
-      <property name="text">
-       <string>CryptAdmin</string>
       </property>
      </widget>
     </item>
