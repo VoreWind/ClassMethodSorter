@@ -11,6 +11,7 @@ class QStringList;
 class MemberSorter : public Sorter {
  public:
   MemberSorter();
+  QString SortMembers(QStringList &split_section);
 
  private:
   enum MemberTypes {
@@ -28,15 +29,13 @@ class MemberSorter : public Sorter {
     kFunctionalObjectsContainers
   };
 
-  QString SortMembers(QString &section);
-
   static bool SortingForMembers(const QString &left_member,
                                 const QString &right_member);
 
   QString AssembleSortedString();
   void AddStringIntoListOfLists(int list_index, const QString &string);
   void PlaceMembersIntoGroups(const QStringList &members);
-  void SortMethodsInGroups();
+  void SortMembersInGroups();
 
   static const int kMemberGroupsAmount = 13;
 
