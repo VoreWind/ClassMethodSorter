@@ -5,8 +5,6 @@
 
 Sorter::Sorter() {}
 
-void Sorter::SortElements(QString &section) {}
-
 int Sorter::ElementStringAmount(const QString &element) {
   return element.count("\n");
 }

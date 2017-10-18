@@ -3,13 +3,15 @@
 #include <QDebug>
 #include <QStringList>
 
-MemberSorter::MemberSorter() {}
+MemberSorter::MemberSorter() { member_groups_.resize(kMemberGroupsAmount); }
 
-QString MemberSorter::SortMembers(QString &section) {
-  auto methods = SplitSectionIntoElements(section);
-  PlaceMembersIntoGroups(methods);
-  SortMethodsInGroups();
-  return AssembleSortedString();
+QString MemberSorter::SortMembers(QStringList &split_section) {
+  if (split_section.count() != 0) {
+    PlaceMembersIntoGroups(split_section);
+    SortMembersInGroups();
+    return AssembleSortedString();
+  }
+  return "";
 }
 
 bool MemberSorter::SortingForMembers(const QString &left_member,
@@ -58,7 +60,7 @@ QString MemberSorter::AssembleSortedString() {
     }
     return_string.append("\n");
   }
-
+  qDebug() << return_string;
   return CleanString(return_string);
 }
 
@@ -118,7 +120,7 @@ void MemberSorter::PlaceMembersIntoGroups(const QStringList &members) {
   }
 }
 
-void MemberSorter::SortMethodsInGroups() {
+void MemberSorter::SortMembersInGroups() {
   for (int i = 0; i < kMemberGroupsAmount; ++i) {
     std::sort(member_groups_[i].begin(), member_groups_[i].end(),
               this->SortingForMembers);

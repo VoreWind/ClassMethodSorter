@@ -4,6 +4,8 @@
 #include <QString>
 #include <QStringList>
 
+#include <membersorter.h>
+
 SectionSorter::SectionSorter(QString class_name) : class_name_(class_name) {
   method_groups_.resize(kMethodGroupsAmount);
 }
@@ -69,6 +71,11 @@ int SectionSorter::MethodParamsAmount(const QString &method) {
 
 void SectionSorter::SortMethodsInGroups() {
   for (int i = 0; i < kMethodGroupsAmount; ++i) {
+    if (i >= kStaticNonConstantMembers && i < kConstantMembers) {
+      MemberSorter sorter;
+      sorter.SortMembers(method_groups_[i]);
+    }
+
     std::sort(method_groups_[i].begin(), method_groups_[i].end(),
               this->SortingForMethods);
   }

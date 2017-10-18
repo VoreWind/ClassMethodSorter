@@ -21,7 +21,6 @@ MainWindow::~MainWindow() { delete ui; }
 
 void MainWindow::ReorderText() {
   QString text_section = ui->segment_text_edit->toPlainText();
-  text_section = SectionSorter::CleanString(text_section, "\n\n", "\n");
   QList<ParsedClass> broken_classes =
       ClassBreaker::FindClassBlocksInString(text_section);
 
