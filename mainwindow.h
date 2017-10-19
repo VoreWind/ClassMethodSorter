@@ -12,12 +12,13 @@ class MainWindow : public QMainWindow {
 
  public:
   explicit MainWindow(QWidget *parent = 0);
-
+  QString ReorderTextFromString(const QString &text_section);
   ~MainWindow();
  public slots:
   void ReorderText();
   void SelectSourceFolder();
   void SelectDestinationFolder();
+  void ReorderAllTextInFolder();
 
  private:
   static QString CleanString(const QString &string);

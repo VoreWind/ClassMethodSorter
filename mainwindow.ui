@@ -136,10 +136,17 @@ class KeyParametersPage : public QWizardPage {
       </property>
      </widget>
     </item>
-    <item row="5" column="0" colspan="4">
+    <item row="5" column="1" colspan="3">
      <widget class="QPushButton" name="sort_all_button">
       <property name="text">
        <string>Sort All</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="0">
+     <widget class="QCheckBox" name="is_recursive_check">
+      <property name="text">
+       <string>Recursive</string>
       </property>
      </widget>
     </item>
