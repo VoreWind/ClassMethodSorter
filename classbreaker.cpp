@@ -39,7 +39,7 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
           next_open_curvy_brace_position == -1) {
         class_block = block.mid(
             open_curvy_brace_position + 2,
-            close_curvy_brace_position - open_curvy_brace_position - 2);
+            close_curvy_brace_position - open_curvy_brace_position - 1);
         break;
       }
     };
@@ -133,7 +133,7 @@ QString ClassBreaker::AssembleBlockBack(ParsedClass parsed_class,
   for (auto inner_class : parsed_class.inner_classes) {
     AssembleBlockBack(inner_class, assembled_class);
   }
-  assembled_class.append("}");
+  assembled_class.append("\n}");
   initial_string.replace("class ##" + parsed_class.class_name + "##",
                          assembled_class);
 
