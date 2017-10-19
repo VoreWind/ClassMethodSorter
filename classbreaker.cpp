@@ -43,9 +43,11 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
         break;
       }
     };
+
+    QString first_header_word = parsed_class.class_header.section(" ", 0, 0);
     block.replace(token_position,
                   close_curvy_brace_position - token_position + 1,
-                  "class ##" + parsed_class.class_name + "##");
+                  first_header_word + " ##" + parsed_class.class_name + "##");
 
     parsed_class.inner_classes = FindClassBlocksInString(class_block);
     parsed_class.split_class_body = SplitClassBlockToSections(class_block);
@@ -133,9 +135,13 @@ QString ClassBreaker::AssembleBlockBack(ParsedClass parsed_class,
   for (auto inner_class : parsed_class.inner_classes) {
     AssembleBlockBack(inner_class, assembled_class);
   }
+
   assembled_class.append("\n}");
-  initial_string.replace("class ##" + parsed_class.class_name + "##",
-                         assembled_class);
+
+  QString first_header_word = parsed_class.class_header.section(" ", 0, 0);
+  initial_string.replace(
+      first_header_word + " ##" + parsed_class.class_name + "##",
+      assembled_class);
 
   return assembled_class;
 }
