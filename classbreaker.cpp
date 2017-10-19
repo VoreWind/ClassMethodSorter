@@ -67,10 +67,10 @@ QString ClassBreaker::FindClassName(const QString& block, int token_position) {
 
 QString ClassBreaker::FindClassHeader(const QString& block,
                                       int token_position) {
-  int brace_position = block.indexOf("{", token_position);
+  QRegExp section_regexp = SectionFinderRegExp();
+  int section_position = block.indexOf(section_regexp);
   // Придумать, как это покрасивее описать.
-  brace_position++;
-  return block.mid(token_position, brace_position - token_position);
+  return block.mid(token_position, section_position - token_position);
 }
 
 QRegExp ClassBreaker::SectionFinderRegExp() {
@@ -126,8 +126,7 @@ QVector<QString> ClassBreaker::SplitClassBlockToSections(
 QString ClassBreaker::AssembleBlockBack(ParsedClass parsed_class,
                                         QString& initial_string) {
   QString assembled_class;
-  assembled_class.append(parsed_class.class_header);
-  assembled_class.append("");
+  assembled_class.append(parsed_class.class_header.trimmed());
   assembled_class.append(
       AssembleBlockFromSections(parsed_class.split_class_body));
 
