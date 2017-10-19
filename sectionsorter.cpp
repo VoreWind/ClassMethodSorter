@@ -88,17 +88,16 @@ QString SectionSorter::AssembleSortedString() {
   QString return_string;
   for (int i = 0; i < kMethodGroupsAmount; ++i) {
     QStringList methods = method_groups_.at(i);
-    for (auto method : methods) {
-      if (method.count() != 0) {
+    if (methods.count() != 0) {
+      for (auto method : methods) {
         if (method.count("\n") > 0) {
           method.prepend("\n");
         }
         return_string += "\n" + method;
       }
+      return_string.append("\n");
     }
-    return_string.append("\n");
   }
-
   return return_string;
 }
 

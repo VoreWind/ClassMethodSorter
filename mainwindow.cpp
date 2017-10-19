@@ -28,6 +28,5 @@ void MainWindow::ReorderText() {
     ClassBreaker::SortClassSections(broken_class);
     ClassBreaker::AssembleBlockBack(broken_class, text_section);
   }
-  ui->segment_text_edit->setPlainText(
-      SectionSorter::CleanString(text_section, "\n\n\n", "\n\n"));
+  ui->segment_text_edit->setPlainText(text_section);
 }
