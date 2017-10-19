@@ -16,6 +16,8 @@ class MainWindow : public QMainWindow {
   ~MainWindow();
  public slots:
   void ReorderText();
+  void SelectSourceFolder();
+  void SelectDestinationFolder();
 
  private:
   static QString CleanString(const QString &string);
