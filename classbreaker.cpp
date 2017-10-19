@@ -127,7 +127,7 @@ QString ClassBreaker::AssembleBlockBack(ParsedClass parsed_class,
                                         QString& initial_string) {
   QString assembled_class;
   assembled_class.append(parsed_class.class_header);
-  assembled_class.append("\n");
+  assembled_class.append("");
   assembled_class.append(
       AssembleBlockFromSections(parsed_class.split_class_body));
 
@@ -163,7 +163,7 @@ QString ClassBreaker::AssembleBlockFromSections(QVector<QString> sections) {
   for (int i = 0; i < sections.count(); ++i) {
     QString section = sections.at(i);
     if (!section.isEmpty()) {
-      section.prepend("\n " + kSectionNames.at(i));
+      section.prepend("\n\n " + kSectionNames.at(i));
       assembled_block.append(section);
     }
   }

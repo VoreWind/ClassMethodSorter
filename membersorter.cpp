@@ -52,16 +52,17 @@ QString MemberSorter::AssembleSortedString() {
   QString return_string;
   for (int i = 0; i < kMemberGroupsAmount; ++i) {
     QStringList methods = member_groups_.at(i);
-    for (auto method : methods) {
-      if (method.count("\n") > 1) {
-        method.prepend("\n");
+    if (methods.count() != 0) {
+      for (auto method : methods) {
+        if (method.count("\n") > 0) {
+          method.prepend("\n");
+        }
+        return_string += "\n" + method;
       }
-      return_string += method;
+      return_string.append("\n");
     }
-    return_string.append("\n");
   }
-  qDebug() << return_string;
-  return CleanString(return_string);
+  return return_string.trimmed();
 }
 
 void MemberSorter::AddStringIntoListOfLists(int list_index,

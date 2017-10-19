@@ -76,7 +76,10 @@ void SectionSorter::SortMethodsInGroups() {
   for (int i = 0; i < kMethodGroupsAmount; ++i) {
     if (i >= kStaticNonConstantMembers && i < kConstantMembers) {
       MemberSorter sorter;
-      sorter.SortMembers(method_groups_[i]);
+      QString sorted_string = sorter.SortMembers(method_groups_[i]);
+      if (!sorted_string.isEmpty()) {
+        method_groups_[i] = {sorted_string};
+      }
     } else {
       std::sort(method_groups_[i].begin(), method_groups_[i].end(),
                 this->SortingForMethods);
@@ -95,7 +98,6 @@ QString SectionSorter::AssembleSortedString() {
         }
         return_string += "\n" + method;
       }
-      return_string.append("\n");
     }
   }
   return return_string;
