@@ -59,72 +59,51 @@
     <item row="0" column="0" colspan="4">
      <widget class="QPlainTextEdit" name="segment_text_edit">
       <property name="plainText">
-       <string>#ifndef KEYPARAMETERSPAGE_H
-#define KEYPARAMETERSPAGE_H
+       <string>#ifndef CLASSBREAKER_H
+#define CLASSBREAKER_H
 
-#include &lt;QWizardPage&gt;
+#include &lt;QList&gt;
+#include &lt;QString&gt;
+#include &lt;QVector&gt;
 
-#include &lt;algorithminfoprovider.h&gt;
-
-class QRadioButton;
-class QCheckBox;
-class QLineEdit;
-class QVBoxLayout;
-class QComboBox;
-
-class KeyParametersPage : public QWizardPage {
-  Q_OBJECT
- public:
-  explicit KeyParametersPage(QWidget *parent);
-
-  int nextId() const override;
-  bool isComplete() const override;
-  bool validatePage() override;
-
- signals:
-  void CaIsRoot(bool is_ca);
-
- private slots:
-  void CreateKeyCurrier();
-  void BlockIpEdit();
-  void HandleRestoreCaToggled(bool is_toggled);
-
- private:
-  void CreateGui();
-  void FillLocCurrier();
-  bool IsAlgorithmApprovedForCurring(char *oid);
-
-  int GetTypeCurrier(const QString &amp;ip,
-                     int port,
-                     QStringList &amp;container_ids,
-                     QStringList &amp;container_names,
-                     QStringList &amp;currier_ids,
-                     QStringList &amp;currier_names);
-
-  int GetNumberOfCurrierByOid(const QString &amp;oid);
-  int GetNumberOfCurrierForLocalByOid(const QString &amp;oid);
-  void RemoveOidsFromAlgorythmsInfo(const QStringList &amp;oids_to_remove,
-                                    QList&lt;AlgorithmInfo&gt; &amp;algorithms_info);
-
-  QRadioButton *is_restore_ca_radio_ = nullptr;
-  QRadioButton *is_new_ca_radio_ = nullptr;
-
-  QCheckBox *is_root_ca_check_box_ = nullptr;
-  QLineEdit *ip_line_edit_ = nullptr;
-  QVBoxLayout *layout_ = nullptr;
-  QComboBox *container_combo_box_ = nullptr;
-  QComboBox *currier_combo_box_ = nullptr;
-  QComboBox *container_loc_combo_box_ = nullptr;
-  QComboBox *currier_loc_combo_box_ = nullptr;
-
-  QStringList container_id_;
-  QStringList currier_id_;
-  QStringList container_loc_id_;
-  QStringList currier_loc_id_;
-  bool is_correct_;
+struct ParsedClass {
+  QString class_name;
+  QString class_header;
+  QVector&lt;QString&gt; split_class_body;
+  QList&lt;ParsedClass&gt; inner_classes;
 };
 
-#endif  // KEYPARAMETERSPAGE_H
+class ClassBreaker {
+ public:
+  enum Sections {
+    kPublic,
+    kSignals,
+    kPublicSlots,
+    kProtectedSlots,
+    kProtected,
+    kPrivateSlots,
+    kPrivate
+  };
+
+  static QList&lt;ParsedClass&gt; FindClassBlocksInString(QString&amp; block);
+  static QString AssembleBlockBack(ParsedClass parsed_class,
+                                   QString&amp; initial_string);
+  static void SortClassSections(ParsedClass&amp; parsed_class);
+
+ private:
+  static QList&lt;int&gt; BuildSectionPositionList(const QString&amp; class_block);
+  static QString FindClassName(const QString&amp; block, int token_position);
+  static QRegExp SectionFinderRegExp();
+  static QVector&lt;QString&gt; SplitClassBlockToSections(const QString&amp; class_block);
+
+  static QString AssembleBlockFromSections(QVector&lt;QString&gt; sections);
+
+  static const QStringList kSectionNames;
+  static const int kSectionsAmount = 7;
+  static QString FindClassHeader(const QString&amp; block, int token_position);
+};
+
+#endif  // CLASSBREAKER_H
 </string>
       </property>
      </widget>
