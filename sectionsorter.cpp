@@ -25,11 +25,14 @@ bool SectionSorter::SortingForMethods(const QString &left_method,
   int right_method_string_count = ElementStringAmount(right_method);
   int left_method_string_count = ElementStringAmount(left_method);
 
-  if (right_method_string_count == 1 && left_method_string_count == 1) {
+  const int one_line_method_string_count = 0;
+  if (right_method_string_count == one_line_method_string_count &&
+      left_method_string_count == one_line_method_string_count) {
     return left_method < right_method;
   }
 
-  if (right_method_string_count == 1 || left_method_string_count == 1) {
+  if (right_method_string_count == one_line_method_string_count ||
+      left_method_string_count == one_line_method_string_count) {
     return left_method_string_count < right_method_string_count;
   }
 
@@ -74,10 +77,10 @@ void SectionSorter::SortMethodsInGroups() {
     if (i >= kStaticNonConstantMembers && i < kConstantMembers) {
       MemberSorter sorter;
       sorter.SortMembers(method_groups_[i]);
+    } else {
+      std::sort(method_groups_[i].begin(), method_groups_[i].end(),
+                this->SortingForMethods);
     }
-
-    std::sort(method_groups_[i].begin(), method_groups_[i].end(),
-              this->SortingForMethods);
   }
 }
 
@@ -86,15 +89,17 @@ QString SectionSorter::AssembleSortedString() {
   for (int i = 0; i < kMethodGroupsAmount; ++i) {
     QStringList methods = method_groups_.at(i);
     for (auto method : methods) {
-      if (method.count("\n") > 1) {
-        method.prepend("\n");
+      if (method.count() != 0) {
+        if (method.count("\n") > 0) {
+          method.prepend("\n");
+        }
+        return_string += "\n" + method;
       }
-      return_string += method;
     }
     return_string.append("\n");
   }
 
-  return CleanString(return_string);
+  return return_string;
 }
 
 void SectionSorter::PlaceMethodsIntoGroups(const QStringList &methods) {
