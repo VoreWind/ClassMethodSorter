@@ -36,7 +36,7 @@ QString MainWindow::ReorderTextFromString(const QString &text_section) {
     ClassBreaker::AssembleClassBack(broken_class, non_const_section);
   }
 
-  return text_section;
+  return non_const_section;
 }
 
 MainWindow::~MainWindow() { delete ui; }
@@ -85,10 +85,13 @@ void MainWindow::ReorderAllTextInFolder() {
 
     QString parsed_file = ReorderTextFromString(source_file.readAll());
     source_file.close();
-
+    QFileInfo source_file_info(source_file.fileName());
     QFile destination_file(ui->destination_directory_line->text() + "/" +
-                           source_file.fileName());
-    destination_file.open(QIODevice::WriteOnly);
+                           source_file_info.fileName());
+    if (!destination_file.exists()) {
+    }
+    qDebug() << destination_file.fileName()
+             << destination_file.open(QIODevice::WriteOnly);
 
     QTextStream out(&destination_file);
     out << parsed_file;
