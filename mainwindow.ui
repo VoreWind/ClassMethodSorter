@@ -59,51 +59,34 @@
     <item row="0" column="0" colspan="4">
      <widget class="QPlainTextEdit" name="segment_text_edit">
       <property name="plainText">
-       <string>#ifndef CLASSBREAKER_H
-#define CLASSBREAKER_H
+       <string>#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
 
-#include &lt;QList&gt;
-#include &lt;QString&gt;
-#include &lt;QVector&gt;
+#include &lt;QMainWindow&gt;
 
-struct ParsedClass {
-  QString class_name;
-  QString class_header;
-  QVector&lt;QString&gt; split_class_body;
-  QList&lt;ParsedClass&gt; inner_classes;
-};
+namespace Ui {
+class MainWindow;
+}
 
-class ClassBreaker {
+class MainWindow : public QMainWindow {
+  Q_OBJECT
+
  public:
-  enum Sections {
-    kPublic,
-    kSignals,
-    kPublicSlots,
-    kProtectedSlots,
-    kProtected,
-    kPrivateSlots,
-    kPrivate
-  };
-
-  static QList&lt;ParsedClass&gt; FindClassBlocksInString(QString&amp; block);
-  static QString AssembleBlockBack(ParsedClass parsed_class,
-                                   QString&amp; initial_string);
-  static void SortClassSections(ParsedClass&amp; parsed_class);
+  explicit MainWindow(QWidget *parent = 0);
+  QString ReorderTextFromString(const QString &amp;text_section);
+  ~MainWindow();
+ public slots:
+  void ReorderText();
+  void SelectSourceFolder();
+  void SelectDestinationFolder();
+  void ReorderAllTextInFolder();
 
  private:
-  static QList&lt;int&gt; BuildSectionPositionList(const QString&amp; class_block);
-  static QString FindClassName(const QString&amp; block, int token_position);
-  static QRegExp SectionFinderRegExp();
-  static QVector&lt;QString&gt; SplitClassBlockToSections(const QString&amp; class_block);
+  static QString CleanString(const QString &amp;string);
 
-  static QString AssembleBlockFromSections(QVector&lt;QString&gt; sections);
-
-  static const QStringList kSectionNames;
-  static const int kSectionsAmount = 7;
-  static QString FindClassHeader(const QString&amp; block, int token_position);
+  Ui::MainWindow *ui;
 };
-
-#endif  // CLASSBREAKER_H
+#endif  // MAINWINDOW_H
 </string>
       </property>
      </widget>

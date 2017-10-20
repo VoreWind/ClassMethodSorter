@@ -52,7 +52,8 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
     parsed_class.inner_classes = FindClassBlocksInString(class_block);
 
     QString trimmed_class_block = class_block.trimmed();
-    if (IsClassBlockStatringWithSectionToken(trimmed_class_block)) {
+    if (IsClassBlockStatringWithSectionToken(trimmed_class_block) &&
+        parsed_class.class_header.startsWith("struct")) {
       parsed_class.is_public_section_shown = false;
       trimmed_class_block.prepend("public:\n");
     }
