@@ -82,7 +82,7 @@ void SectionSorter::SortMethodsInGroups() {
       }
     } else {
       std::sort(method_groups_[i].begin(), method_groups_[i].end(),
-                this->SortingForMethods);
+                SortingForMethods);
     }
   }
 }

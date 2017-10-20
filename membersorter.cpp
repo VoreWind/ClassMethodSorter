@@ -124,6 +124,6 @@ void MemberSorter::PlaceMembersIntoGroups(const QStringList &members) {
 void MemberSorter::SortMembersInGroups() {
   for (int i = 0; i < kMemberGroupsAmount; ++i) {
     std::sort(member_groups_[i].begin(), member_groups_[i].end(),
-              this->SortingForMembers);
+              SortingForMembers);
   }
 }
