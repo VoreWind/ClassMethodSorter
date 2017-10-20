@@ -77,7 +77,7 @@ void MainWindow::ReorderAllTextInFolder() {
   }
 
   QDirIterator it(ui->source_directory_line->text(), QStringList() << "*.h",
-                  QDir::Files, QDirIterator::Subdirectories);
+                  QDir::Files, flag);
 
   while (it.hasNext()) {
     QFile source_file(it.next());
@@ -86,14 +86,16 @@ void MainWindow::ReorderAllTextInFolder() {
     QString parsed_file = ReorderTextFromString(source_file.readAll());
     source_file.close();
     QFileInfo source_file_info(source_file.fileName());
-    QFile destination_file(ui->destination_directory_line->text() + "/" +
-                           source_file_info.fileName());
-    if (!destination_file.exists()) {
-    }
-    qDebug() << destination_file.fileName()
-             << destination_file.open(QIODevice::WriteOnly);
+    QString subdirectory_path = source_file_info.dir().path().mid(
+        ui->source_directory_line->text().count());
 
-    QTextStream out(&destination_file);
-    out << parsed_file;
+    QFile destination_file(ui->destination_directory_line->text() + "/" +
+                           subdirectory_path + source_file_info.fileName());
+
+    qDebug() << destination_file.fileName();
+    //             << destination_file.open(QIODevice::WriteOnly);
+
+    //    QTextStream out(&destination_file);
+    //    out << parsed_file;
   }
 }
