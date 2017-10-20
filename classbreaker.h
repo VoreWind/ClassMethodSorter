@@ -6,6 +6,7 @@
 #include <QVector>
 
 struct ParsedClass {
+  bool is_public_section_shown = true;
   QString class_name;
   QString class_header;
   QVector<QString> split_class_body;
@@ -25,7 +26,7 @@ class ClassBreaker {
   };
 
   static QList<ParsedClass> FindClassBlocksInString(QString& block);
-  static QString AssembleBlockBack(ParsedClass parsed_class,
+  static QString AssembleClassBack(ParsedClass parsed_class,
                                    QString& initial_string);
   static void SortClassSections(ParsedClass& parsed_class);
 
@@ -34,12 +35,15 @@ class ClassBreaker {
   static QString FindClassName(const QString& block, int token_position);
   static QRegExp SectionFinderRegExp();
   static QVector<QString> SplitClassBlockToSections(const QString& class_block);
-
-  static QString AssembleBlockFromSections(QVector<QString> sections);
+  static QString FindClassHeader(const QString& block, int token_position);
+  static QString FindStructHeader(const QString& block, int token_position);
+  static QString FindHeader(const QString& block, int token_position);
+  static bool IsClassBlockStatringWithSectionToken(const QString& block);
+  static QString AssembleBlockFromSections(QVector<QString> sections,
+                                           bool is_public_section_shown = true);
 
   static const QStringList kSectionNames;
   static const int kSectionsAmount = 7;
-  static QString FindClassHeader(const QString& block, int token_position);
 };
 
 #endif  // CLASSBREAKER_H

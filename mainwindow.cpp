@@ -33,7 +33,7 @@ QString MainWindow::ReorderTextFromString(const QString &text_section) {
 
   for (auto broken_class : broken_classes) {
     ClassBreaker::SortClassSections(broken_class);
-    ClassBreaker::AssembleBlockBack(broken_class, non_const_section);
+    ClassBreaker::AssembleClassBack(broken_class, non_const_section);
   }
 
   return text_section;
@@ -48,7 +48,7 @@ void MainWindow::ReorderText() {
 
   for (auto broken_class : broken_classes) {
     ClassBreaker::SortClassSections(broken_class);
-    ClassBreaker::AssembleBlockBack(broken_class, text_section);
+    ClassBreaker::AssembleClassBack(broken_class, text_section);
   }
   ui->segment_text_edit->setPlainText(text_section);
 }

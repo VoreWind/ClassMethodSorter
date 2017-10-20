@@ -21,7 +21,7 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
     ParsedClass parsed_class;
 
     parsed_class.class_name = FindClassName(block, token_position);
-    parsed_class.class_header = FindClassHeader(block, token_position);
+    parsed_class.class_header = FindHeader(block, token_position);
 
     int open_curvy_brace_position = block.indexOf("{", token_position);
     int next_open_curvy_brace_position = open_curvy_brace_position;
@@ -50,7 +50,15 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
                   first_header_word + " ##" + parsed_class.class_name + "##");
 
     parsed_class.inner_classes = FindClassBlocksInString(class_block);
-    parsed_class.split_class_body = SplitClassBlockToSections(class_block);
+
+    QString trimmed_class_block = class_block.trimmed();
+    if (IsClassBlockStatringWithSectionToken(trimmed_class_block)) {
+      parsed_class.is_public_section_shown = false;
+      trimmed_class_block.prepend("public:\n");
+    }
+
+    parsed_class.split_class_body =
+        SplitClassBlockToSections(trimmed_class_block);
     block_class_list.push_back(parsed_class);
 
     token_position = block.indexOf(class_token_regexp);
@@ -60,7 +68,6 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
 
 QString ClassBreaker::FindClassName(const QString& block, int token_position) {
   int first_space_position = block.indexOf(" ", token_position);
-  // Придумать, как это покрасивее описать.
   first_space_position++;
   int second_space_position = block.indexOf(" ", first_space_position + 1);
   return block.mid(first_space_position,
@@ -71,8 +78,29 @@ QString ClassBreaker::FindClassHeader(const QString& block,
                                       int token_position) {
   QRegExp section_regexp = SectionFinderRegExp();
   int section_position = block.indexOf(section_regexp);
-  // Придумать, как это покрасивее описать.
   return block.mid(token_position, section_position - token_position);
+}
+
+QString ClassBreaker::FindStructHeader(const QString& block,
+                                       int token_position) {
+  QString edge_token = "{\n";
+  int section_position = block.indexOf(edge_token);
+  return block.mid(token_position,
+                   section_position + edge_token.count() - token_position);
+}
+
+QString ClassBreaker::FindHeader(const QString& block, int token_position) {
+  if (block.mid(token_position).startsWith("struct")) {
+    return FindStructHeader(block, token_position);
+  } else if (block.mid(token_position).startsWith("class")) {
+    return FindClassHeader(block, token_position);
+  }
+  return QString();
+}
+
+bool ClassBreaker::IsClassBlockStatringWithSectionToken(const QString& block) {
+  QRegExp section_regexp = SectionFinderRegExp();
+  return block.indexOf(section_regexp) != 0;
 }
 
 QRegExp ClassBreaker::SectionFinderRegExp() {
@@ -125,15 +153,15 @@ QVector<QString> ClassBreaker::SplitClassBlockToSections(
   return sections;
 }
 
-QString ClassBreaker::AssembleBlockBack(ParsedClass parsed_class,
+QString ClassBreaker::AssembleClassBack(ParsedClass parsed_class,
                                         QString& initial_string) {
   QString assembled_class;
   assembled_class.append(parsed_class.class_header.trimmed());
-  assembled_class.append(
-      AssembleBlockFromSections(parsed_class.split_class_body));
+  assembled_class.append(AssembleBlockFromSections(
+      parsed_class.split_class_body, parsed_class.is_public_section_shown));
 
   for (auto inner_class : parsed_class.inner_classes) {
-    AssembleBlockBack(inner_class, assembled_class);
+    AssembleClassBack(inner_class, assembled_class);
   }
 
   assembled_class.append("\n}");
@@ -163,12 +191,16 @@ void ClassBreaker::SortClassSections(ParsedClass& parsed_class) {
   }
 }
 
-QString ClassBreaker::AssembleBlockFromSections(QVector<QString> sections) {
+QString ClassBreaker::AssembleBlockFromSections(QVector<QString> sections,
+                                                bool is_public_section_shown) {
   QString assembled_block;
   for (int i = 0; i < sections.count(); ++i) {
+    bool do_we_show_section_name = is_public_section_shown || i != 0;
     QString section = sections.at(i);
     if (!section.isEmpty()) {
-      section.prepend("\n\n " + kSectionNames.at(i));
+      if (do_we_show_section_name) {
+        section.prepend("\n\n " + kSectionNames.at(i));
+      }
       assembled_block.append(section);
     }
   }
