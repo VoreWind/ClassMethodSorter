@@ -46,8 +46,8 @@ QString MainWindow::ReorderTextFromString(const QString &text_section) {
 MainWindow::~MainWindow() { delete ui; }
 
 void MainWindow::ReorderText() {
-  if (mode_ = kSort) {
-    QString text_section = ui->segment_text_edit->toPlainText();
+  QString text_section = ui->segment_text_edit->toPlainText();
+  if (mode_ == kSort) {
     QList<ParsedClass> broken_classes =
         ClassBreaker::FindClassBlocksInString(text_section);
 
@@ -56,10 +56,11 @@ void MainWindow::ReorderText() {
       ClassBreaker::AssembleClassBack(broken_class, text_section);
     }
     ui->segment_text_edit->setPlainText(text_section);
-  } else if (mode_ = kFixHeaderGuards) {
-    HeaderGuardFixer::FixHeaderGuardsInText(
-        ui->segment_text_edit->toPlainText(), ui->name_line_edit->text());
+  } else if (mode_ == kFixHeaderGuards) {
+    text_section = HeaderGuardFixer::FixHeaderGuardsInText(
+        text_section, ui->name_line_edit->text());
   }
+  ui->segment_text_edit->setPlainText(text_section);
 }
 
 void MainWindow::SelectSourceFolder() {
@@ -91,21 +92,34 @@ void MainWindow::ReorderAllTextInFolder() {
   while (it.hasNext()) {
     QFile source_file(it.next());
     source_file.open(QIODevice::ReadOnly);
-
-    QString parsed_file = ReorderTextFromString(source_file.readAll());
+    QString file_contents = source_file.readAll();
     source_file.close();
+
     QFileInfo source_file_info(source_file.fileName());
+
     QString subdirectory_path = source_file_info.dir().path().mid(
         ui->source_directory_line->text().count());
 
-    QFile destination_file(ui->destination_directory_line->text() + "/" +
+    QString parsed_file;
+    if (mode_ == kSort) {
+      parsed_file = ReorderTextFromString(file_contents);
+    } else if (mode_ == kFixHeaderGuards) {
+      parsed_file = HeaderGuardFixer::FixHeaderGuardsInText(
+          file_contents, source_file_info.fileName());
+    }
+
+    if (parsed_file.isEmpty()) {
+      qDebug() << source_file.fileName();
+      continue;
+    }
+    QFile destination_file(ui->destination_directory_line->text() +
                            subdirectory_path + source_file_info.fileName());
 
     qDebug() << destination_file.fileName();
-    //             << destination_file.open(QIODevice::WriteOnly);
+    destination_file.open(QIODevice::WriteOnly);
 
-    //    QTextStream out(&destination_file);
-    //    out << parsed_file;
+    QTextStream out(&destination_file);
+    out << parsed_file;
   }
 }
 

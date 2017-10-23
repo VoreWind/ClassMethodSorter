@@ -10,8 +10,7 @@ class HeaderGuardFixer {
 
  private:
   static QString FindHeaderGuard(const QString& file_text);
-  static bool IsHeaderGuardValid(const QString& file_name,
-                                 const QString& header_guard);
+  static QString MakeHeaderGuardFromFileName(const QString& file_name);
 };
 
 #endif  // HEADERGUARDFIXER_H
