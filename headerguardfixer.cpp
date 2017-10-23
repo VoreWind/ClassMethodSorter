@@ -10,8 +10,15 @@ QString HeaderGuardFixer::FixHeaderGuardsInText(const QString &file_text,
   QString header_guard = FindHeaderGuard(file_text);
   QString header_guard_from_file = MakeHeaderGuardFromFileName(file_name);
 
-  if (return_string.count(header_guard) != 3) {
+  if (return_string.count(header_guard) > 3) {
     return "";
+  } else if (return_string.count(header_guard) < 3) {
+    if (file_text.contains("#define " + header_guard)) {
+      QString endif_string = "#endif";
+      int last_endif_position = file_text.lastIndexOf(endif_string);
+      return_string.insert(last_endif_position + endif_string.count(),
+                           "  // " + header_guard_from_file);
+    }
   }
 
   return_string.replace(header_guard, header_guard_from_file);
