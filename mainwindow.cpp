@@ -11,6 +11,7 @@
 #include <QString>
 
 #include <classbreaker.h>
+#include <headerguardfixer.h>
 #include <sectionsorter.h>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -24,6 +25,9 @@ MainWindow::MainWindow(QWidget *parent)
           SLOT(SelectDestinationFolder()));
   connect(ui->sort_all_button, SIGNAL(pressed()),
           SLOT(ReorderAllTextInFolder()));
+  connect(ui->mode_combo, SIGNAL(currentIndexChanged(int)), SLOT(SetMode(int)));
+
+  SetMode(ui->mode_combo->currentIndex());
 }
 
 QString MainWindow::ReorderTextFromString(const QString &text_section) {
@@ -42,15 +46,20 @@ QString MainWindow::ReorderTextFromString(const QString &text_section) {
 MainWindow::~MainWindow() { delete ui; }
 
 void MainWindow::ReorderText() {
-  QString text_section = ui->segment_text_edit->toPlainText();
-  QList<ParsedClass> broken_classes =
-      ClassBreaker::FindClassBlocksInString(text_section);
+  if (mode_ = kSort) {
+    QString text_section = ui->segment_text_edit->toPlainText();
+    QList<ParsedClass> broken_classes =
+        ClassBreaker::FindClassBlocksInString(text_section);
 
-  for (auto broken_class : broken_classes) {
-    ClassBreaker::SortClassSections(broken_class);
-    ClassBreaker::AssembleClassBack(broken_class, text_section);
+    for (auto broken_class : broken_classes) {
+      ClassBreaker::SortClassSections(broken_class);
+      ClassBreaker::AssembleClassBack(broken_class, text_section);
+    }
+    ui->segment_text_edit->setPlainText(text_section);
+  } else if (mode_ = kFixHeaderGuards) {
+    HeaderGuardFixer::FixHeaderGuardsInText(
+        ui->segment_text_edit->toPlainText(), ui->name_line_edit->text());
   }
-  ui->segment_text_edit->setPlainText(text_section);
 }
 
 void MainWindow::SelectSourceFolder() {
@@ -97,5 +106,21 @@ void MainWindow::ReorderAllTextInFolder() {
 
     //    QTextStream out(&destination_file);
     //    out << parsed_file;
+  }
+}
+
+void MainWindow::SetMode(int mode) {
+  if (mode == 0) {
+    mode_ = kSort;
+    ui->sort_all_button->setText("Sort All");
+    ui->sort_button->setText("Sort");
+    ui->name_line_edit->setVisible(false);
+    ui->name_label->setVisible(false);
+  } else if (mode == 1) {
+    mode_ = kFixHeaderGuards;
+    ui->sort_all_button->setText("Fix All Guards");
+    ui->sort_button->setText("Fix Guards");
+    ui->name_line_edit->setVisible(true);
+    ui->name_label->setVisible(true);
   }
 }

@@ -15,48 +15,77 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="2" column="0" colspan="4">
+    <item row="0" column="0">
+     <widget class="QComboBox" name="mode_combo">
+      <item>
+       <property name="text">
+        <string>Sort</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Fix header Guards</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item row="0" column="2">
+     <widget class="QLabel" name="label_3">
+      <property name="text">
+       <string>Mode</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0" colspan="4">
      <widget class="Line" name="line">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
      </widget>
     </item>
-    <item row="3" column="0">
+    <item row="5" column="0">
      <widget class="QLabel" name="label">
       <property name="text">
        <string>Source Directory</string>
       </property>
      </widget>
     </item>
-    <item row="3" column="1" colspan="2">
-     <widget class="QLineEdit" name="source_directory_line"/>
-    </item>
-    <item row="3" column="3">
+    <item row="5" column="3">
      <widget class="QPushButton" name="source_directory_button">
       <property name="text">
        <string>Choose Folder</string>
       </property>
      </widget>
     </item>
-    <item row="4" column="0">
+    <item row="6" column="0">
      <widget class="QLabel" name="label_2">
       <property name="text">
        <string>Output Directory</string>
       </property>
      </widget>
     </item>
-    <item row="4" column="1" colspan="2">
-     <widget class="QLineEdit" name="destination_directory_line"/>
-    </item>
-    <item row="4" column="3">
+    <item row="6" column="3">
      <widget class="QPushButton" name="destination_directory_button">
       <property name="text">
        <string>Choose Folder</string>
       </property>
      </widget>
     </item>
-    <item row="0" column="0" colspan="4">
+    <item row="7" column="0">
+     <widget class="QCheckBox" name="is_recursive_check">
+      <property name="text">
+       <string>Recursive</string>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="2">
+     <widget class="QPushButton" name="sort_all_button">
+      <property name="text">
+       <string>Sort All</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0" colspan="4">
      <widget class="QPlainTextEdit" name="segment_text_edit">
       <property name="plainText">
        <string>#ifndef MAINWINDOW_H
@@ -91,26 +120,28 @@ class MainWindow : public QMainWindow {
       </property>
      </widget>
     </item>
-    <item row="1" column="0" colspan="4">
+    <item row="5" column="1" colspan="2">
+     <widget class="QLineEdit" name="source_directory_line"/>
+    </item>
+    <item row="6" column="1" colspan="2">
+     <widget class="QLineEdit" name="destination_directory_line"/>
+    </item>
+    <item row="3" column="0" colspan="4">
      <widget class="QPushButton" name="sort_button">
       <property name="text">
        <string>Sort</string>
       </property>
      </widget>
     </item>
-    <item row="5" column="1" colspan="3">
-     <widget class="QPushButton" name="sort_all_button">
+    <item row="2" column="3">
+     <widget class="QLabel" name="name_label">
       <property name="text">
-       <string>Sort All</string>
+       <string>File name</string>
       </property>
      </widget>
     </item>
-    <item row="5" column="0">
-     <widget class="QCheckBox" name="is_recursive_check">
-      <property name="text">
-       <string>Recursive</string>
-      </property>
-     </widget>
+    <item row="2" column="0" colspan="3">
+     <widget class="QLineEdit" name="name_line_edit"/>
     </item>
    </layout>
   </widget>

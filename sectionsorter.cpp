@@ -78,7 +78,7 @@ void SectionSorter::SortMethodsInGroups() {
       MemberSorter sorter;
       QString sorted_string = sorter.SortMembers(method_groups_[i]);
       if (!sorted_string.isEmpty()) {
-        method_groups_[i] = {sorted_string};
+        method_groups_[i] = QStringList(sorted_string);
       }
     } else {
       std::sort(method_groups_[i].begin(), method_groups_[i].end(),

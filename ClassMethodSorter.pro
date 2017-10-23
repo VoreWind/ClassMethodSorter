@@ -30,7 +30,8 @@ SOURCES += main.cpp\
     classbreaker.cpp \
     sectionsorter.cpp \
     membersorter.cpp \
-    sorter.cpp
+    sorter.cpp \
+    headerguardfixer.cpp
 
 QMAKE_CXXFLAGS += -std=c++11
 
@@ -38,6 +39,7 @@ HEADERS  += mainwindow.h \
     classbreaker.h \
     sectionsorter.h \
     membersorter.h \
-    sorter.h
+    sorter.h \
+    headerguardfixer.h
 
 FORMS    += mainwindow.ui
