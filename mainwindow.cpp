@@ -112,10 +112,11 @@ void MainWindow::ReorderAllTextInFolder() {
       qDebug() << source_file.fileName();
       continue;
     }
-    QFile destination_file(ui->destination_directory_line->text() +
-                           subdirectory_path + source_file_info.fileName());
 
-    qDebug() << destination_file.fileName();
+    QFile destination_file(ui->destination_directory_line->text() +
+                           subdirectory_path + "/" +
+                           source_file_info.fileName());
+
     destination_file.open(QIODevice::WriteOnly);
 
     QTextStream out(&destination_file);
