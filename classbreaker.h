@@ -39,6 +39,7 @@ class ClassBreaker {
   static QString FindStructHeader(const QString& block, int token_position);
   static QString FindHeader(const QString& block, int token_position);
   static bool IsClassBlockStatringWithSectionToken(const QString& block);
+  static bool DoesBlockContainUnparseableCode(QString& block);
   static QString AssembleBlockFromSections(QVector<QString> sections,
                                            bool is_public_section_shown = true);
 

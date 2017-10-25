@@ -14,6 +14,10 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
   QRegExp class_token_regexp("(class|struct)[^;]*\\{\n", Qt::CaseSensitive);
   class_token_regexp.setMinimal(true);
 
+  if (DoesBlockContainUnparseableCode(block)) {
+    return {};
+  }
+
   int token_position = block.indexOf(class_token_regexp);
 
   while (token_position != -1) {
@@ -102,6 +106,10 @@ QString ClassBreaker::FindHeader(const QString& block, int token_position) {
 bool ClassBreaker::IsClassBlockStatringWithSectionToken(const QString& block) {
   QRegExp section_regexp = SectionFinderRegExp();
   return block.indexOf(section_regexp) != 0;
+}
+
+bool ClassBreaker::DoesBlockContainUnparseableCode(QString& block) {
+  return block.contains(QRegExp("^.*\\(.*\\).*\\{.*;.*\\}[^;]"));
 }
 
 QRegExp ClassBreaker::SectionFinderRegExp() {

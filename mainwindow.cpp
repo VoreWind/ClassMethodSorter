@@ -35,6 +35,10 @@ QString MainWindow::ReorderTextFromString(const QString &text_section) {
   QList<ParsedClass> broken_classes =
       ClassBreaker::FindClassBlocksInString(non_const_section);
 
+  if (broken_classes.count() == 0) {
+    return "";
+  }
+
   for (auto broken_class : broken_classes) {
     ClassBreaker::SortClassSections(broken_class);
     ClassBreaker::AssembleClassBack(broken_class, non_const_section);
@@ -50,6 +54,11 @@ void MainWindow::ReorderText() {
   if (mode_ == kSort) {
     QList<ParsedClass> broken_classes =
         ClassBreaker::FindClassBlocksInString(text_section);
+
+    if (broken_classes.count() == 0) {
+      ui->segment_text_edit->setPlainText("");
+      return;
+    }
 
     for (auto broken_class : broken_classes) {
       ClassBreaker::SortClassSections(broken_class);
