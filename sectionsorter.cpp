@@ -105,40 +105,41 @@ QString SectionSorter::AssembleSortedString() {
 
 void SectionSorter::PlaceMethodsIntoGroups(const QStringList &methods) {
   for (auto method : methods) {
-    if (method.contains("friend")) {
-      if (method.contains("operator ")) {
+    auto clean_method = TruncateCommentsFromElement(method);
+    if (clean_method.contains("friend")) {
+      if (clean_method.contains("operator ")) {
         AddStringIntoListOfLists(kFriendOperators, method);
         continue;
       }
-      if (method.contains("class ")) {
+      if (clean_method.contains("class ")) {
         AddStringIntoListOfLists(kFriendClasses, method);
         continue;
       }
-      if (method.contains("(") && method.contains(")")) {
+      if (clean_method.contains("(") && method.contains(")")) {
         AddStringIntoListOfLists(kFriendMethods, method);
         continue;
       }
     }
 
     // Methods
-    if (method.contains("(") && method.contains(")")) {
+    if (clean_method.contains("(") && method.contains(")")) {
       // Destructors.
-      if (method.contains("~", Qt::CaseSensitive)) {
+      if (clean_method.contains("~", Qt::CaseSensitive)) {
         AddStringIntoListOfLists(kDestructors, method);
         continue;
       }
-      if (method.contains("static ", Qt::CaseSensitive)) {
+      if (clean_method.contains("static ", Qt::CaseSensitive)) {
         AddStringIntoListOfLists(kStaticMethods, method);
         continue;
       }
 
-      if (method.contains(class_name_ + "(", Qt::CaseSensitive)) {
+      if (clean_method.contains(class_name_ + "(", Qt::CaseSensitive)) {
         AddStringIntoListOfLists(kConstructors, method);
         continue;
       }
 
-      if (method.contains("virtual ") || method.contains(" override")) {
-        if (method.contains(") const", Qt::CaseSensitive)) {
+      if (clean_method.contains("virtual ") || method.contains(" override")) {
+        if (clean_method.contains(") const", Qt::CaseSensitive)) {
           AddStringIntoListOfLists(kVirtualConstantMethods, method);
           continue;
         } else {
@@ -147,14 +148,14 @@ void SectionSorter::PlaceMethodsIntoGroups(const QStringList &methods) {
         }
       }
 
-      if (method.contains("operator= ", Qt::CaseSensitive)) {
+      if (clean_method.contains("operator= ", Qt::CaseSensitive)) {
         AddStringIntoListOfLists(kAssignmentOperators, method);
         continue;
-      } else if (method.contains("const", Qt::CaseSensitive) &&
-                 method.contains("operator ", Qt::CaseSensitive)) {
+      } else if (clean_method.contains("const", Qt::CaseSensitive) &&
+                 clean_method.contains("operator ", Qt::CaseSensitive)) {
         AddStringIntoListOfLists(kConstantOperators, method);
         continue;
-      } else if (method.contains(") const", Qt::CaseSensitive)) {
+      } else if (clean_method.contains(") const", Qt::CaseSensitive)) {
         AddStringIntoListOfLists(kConstantMethods, method);
         continue;
       } else {
@@ -162,30 +163,30 @@ void SectionSorter::PlaceMethodsIntoGroups(const QStringList &methods) {
         continue;
       }
     } else  // Non-methods
-        if (method.contains("using ", Qt::CaseSensitive)) {
+        if (clean_method.contains("using ", Qt::CaseSensitive)) {
       AddStringIntoListOfLists(kUsingDirectives, method);
       continue;
     }
-    if (method.contains("typedef ", Qt::CaseSensitive)) {
+    if (clean_method.contains("typedef ", Qt::CaseSensitive)) {
       AddStringIntoListOfLists(kTypedefs, method);
       continue;
     }
-    if (method.contains("enum ", Qt::CaseSensitive)) {
+    if (clean_method.contains("enum ", Qt::CaseSensitive)) {
       AddStringIntoListOfLists(kEnums, method);
       continue;
     }
-    if (method.contains("struct ##", Qt::CaseSensitive)) {
+    if (clean_method.contains("struct ##", Qt::CaseSensitive)) {
       AddStringIntoListOfLists(kInlineStructs, method);
       continue;
     }
-    if (method.contains("class ##", Qt::CaseSensitive)) {
+    if (clean_method.contains("class ##", Qt::CaseSensitive)) {
       AddStringIntoListOfLists(kInlineClasses, method);
       continue;
     }
 
     // Members
-    if (method.contains("static ")) {
-      if (method.contains("const ", Qt::CaseSensitive)) {
+    if (clean_method.contains("static ")) {
+      if (clean_method.contains("const ", Qt::CaseSensitive)) {
         AddStringIntoListOfLists(kStaticConstantMembers, method);
         continue;
       } else {
@@ -193,7 +194,7 @@ void SectionSorter::PlaceMethodsIntoGroups(const QStringList &methods) {
         continue;
       }
     } else {
-      if (method.contains("const ", Qt::CaseSensitive)) {
+      if (clean_method.contains("const ", Qt::CaseSensitive)) {
         AddStringIntoListOfLists(kConstantMembers, method);
         continue;
       } else {
