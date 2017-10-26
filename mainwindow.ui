@@ -88,34 +88,68 @@
     <item row="1" column="0" colspan="4">
      <widget class="QPlainTextEdit" name="segment_text_edit">
       <property name="plainText">
-       <string>#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+       <string>#ifndef USERMODEL_H
+#define USERMODEL_H
 
-#include &lt;QMainWindow&gt;
+#include &lt;QAbstractTableModel&gt;
 
-namespace Ui {
-class MainWindow;
-}
+#include &lt;QList&gt;
 
-class MainWindow : public QMainWindow {
+/// Модель для работы со списком пользователей, имеющих хранилища.
+class UserModel : public QAbstractTableModel {
   Q_OBJECT
 
+  /// Информация о конкретном пользователе.
+  struct UserInfo {
+   public:
+    QString user_name;
+    bool is_valid = false;
+  };
+  using UserList = QList&lt;UserInfo&gt;;
+
  public:
-  explicit MainWindow(QWidget *parent = 0);
-  QString ReorderTextFromString(const QString &amp;text_section);
-  ~MainWindow();
- public slots:
-  void ReorderText();
-  void SelectSourceFolder();
-  void SelectDestinationFolder();
-  void ReorderAllTextInFolder();
+  explicit UserModel(QObject* parent = nullptr);
+
+  /// Перечитывает список пользователей и состояние их хранилищ.
+  void Update();
+  /// Добавляет хранилище для указанного пользователя. Если указано - с
+  /// добавлением пользователя в систему.
+  int AddUser(const QString&amp; user_name,
+              bool add_to_system_too,
+              const QString&amp; full_name,
+              const QString&amp; password);
+  /// Восстанавливает хранилище указанному пользователю, т.е. удаляет и снова
+  /// добавляет хранилище и заполняет его переданными объектами.
+  int RestoreStorage(const QString&amp; user_name,
+                     QList&lt;QByteArray&gt;&amp; certs,
+                     QList&lt;QByteArray&gt;&amp; crls);
+  /// Удаляет хранилище указанного пользователя. Если указано - удаляет и
+  /// пользователя из системы.
+  int DeleteUser(const QString&amp; user_name, bool delete_from_system_too);
+
+  /// Возвращает список пользователей с хранилищами.
+  QStringList GetUserList() const;
+
+  int rowCount(const QModelIndex&amp; model_index = QModelIndex()) const override;
+  int columnCount(
+      const QModelIndex&amp; parent_index = QModelIndex()) const override;
+  QVariant data(const QModelIndex&amp; model_index,
+                int role = Qt::DisplayRole) const override;
+  QVariant headerData(int section,
+                      Qt::Orientation orientation,
+                      int role = Qt::DisplayRole) const override;
 
  private:
-  static QString CleanString(const QString &amp;string);
+  /// Проверяет работоспособность хранилища указанного пользователя. False - не
+  /// рабочее.
+  bool IsUserStorageValid(const QString&amp; user_name) const;
 
-  Ui::MainWindow *ui;
+ private:
+  /// Список пользоваталей.
+  UserList users_;
 };
-#endif  // MAINWINDOW_H
+
+#endif  // USERMODEL_H
 </string>
       </property>
      </widget>

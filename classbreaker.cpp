@@ -48,6 +48,8 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
       }
     };
 
+    class_block = InsertSectionToClass(class_block);
+
     QString first_header_word = parsed_class.class_header.section(" ", 0, 0);
     block.replace(token_position,
                   close_curvy_brace_position - token_position + 1,
@@ -81,9 +83,10 @@ QString ClassBreaker::FindClassName(const QString& block, int token_position) {
 
 QString ClassBreaker::FindClassHeader(const QString& block,
                                       int token_position) {
-  QRegExp section_regexp = SectionFinderRegExp();
-  int section_position = block.indexOf(section_regexp);
-  return block.mid(token_position, section_position - token_position);
+  QString edge_token = "{\n";
+  int section_position = block.indexOf(edge_token);
+  return block.mid(token_position,
+                   section_position + edge_token.count() - token_position);
 }
 
 QString ClassBreaker::FindStructHeader(const QString& block,
@@ -214,4 +217,32 @@ QString ClassBreaker::AssembleBlockFromSections(QVector<QString> sections,
     }
   }
   return assembled_block;
+}
+
+QString ClassBreaker::CleanClassFromMacros(const QString& class_string) {
+  QRegExp macro_braced_regexp(" +[A-Z_0-9]+\\(.+\n*.+\\)");
+  QRegExp macro_unbraced_regexp("^ +[A-Z_0-9]+\n");
+  macro_braced_regexp.setMinimal(true);
+  macro_unbraced_regexp.setMinimal(true);
+
+  qDebug() << class_string.contains(macro_unbraced_regexp);
+
+  QString macrossless_string = class_string;
+  macrossless_string.remove(macro_braced_regexp);
+  macrossless_string.remove(macro_unbraced_regexp);
+
+  return macrossless_string;
+}
+
+QString ClassBreaker::InsertSectionToClass(const QString& class_string) {
+  QString return_string = class_string;
+  QString clean_string = CleanClassFromMacros(class_string).trimmed();
+  QString first_line_after_header =
+      clean_string.left(clean_string.indexOf("\n"));
+  qDebug() << first_line_after_header;
+  if (!first_line_after_header.contains(SectionFinderRegExp())) {
+    return_string.insert(return_string.indexOf(first_line_after_header),
+                         " private:\n");
+  }
+  return return_string;
 }
