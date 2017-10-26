@@ -21,7 +21,7 @@ QString Sorter::TruncateCommentsFromElement(const QString &element) {
 }
 
 QStringList Sorter::SplitSectionIntoElements(const QString &code_section) {
-  QRegExp splitter("(;\n)|(;.*\\.\n)");
+  QRegExp splitter("(;\n)|(;.*[\\.!?]\n)");
   splitter.setMinimal(true);
   QStringList list;
   for (int i = 0; i < code_section.count(splitter); ++i) {
