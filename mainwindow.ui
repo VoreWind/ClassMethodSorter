@@ -110,35 +110,6 @@ class UserModel : public QAbstractTableModel {
  public:
   explicit UserModel(QObject* parent = nullptr);
 
-  /// Перечитывает список пользователей и состояние их хранилищ.
-  void Update();
-  /// Добавляет хранилище для указанного пользователя. Если указано - с
-  /// добавлением пользователя в систему.
-  int AddUser(const QString&amp; user_name,
-              bool add_to_system_too,
-              const QString&amp; full_name,
-              const QString&amp; password);
-  /// Восстанавливает хранилище указанному пользователю, т.е. удаляет и снова
-  /// добавляет хранилище и заполняет его переданными объектами.
-  int RestoreStorage(const QString&amp; user_name,
-                     QList&lt;QByteArray&gt;&amp; certs,
-                     QList&lt;QByteArray&gt;&amp; crls);
-  /// Удаляет хранилище указанного пользователя. Если указано - удаляет и
-  /// пользователя из системы.
-  int DeleteUser(const QString&amp; user_name, bool delete_from_system_too);
-
-  /// Возвращает список пользователей с хранилищами.
-  QStringList GetUserList() const;
-
-  int rowCount(const QModelIndex&amp; model_index = QModelIndex()) const override;
-  int columnCount(
-      const QModelIndex&amp; parent_index = QModelIndex()) const override;
-  QVariant data(const QModelIndex&amp; model_index,
-                int role = Qt::DisplayRole) const override;
-  QVariant headerData(int section,
-                      Qt::Orientation orientation,
-                      int role = Qt::DisplayRole) const override;
-
  private:
   /// Проверяет работоспособность хранилища указанного пользователя. False - не
   /// рабочее.

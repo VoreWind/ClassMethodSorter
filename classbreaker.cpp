@@ -10,22 +10,18 @@ const QStringList ClassBreaker::kSectionNames = {
     "protected:", "private slots:", "private:"};
 
 QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
-  QList<ParsedClass> block_class_list;
-  QRegExp class_token_regexp("(class|struct)[^;]*\\{\n", Qt::CaseSensitive);
-  class_token_regexp.setMinimal(true);
-
   if (DoesBlockContainUnparseableCode(block)) {
     return {};
   }
 
+  QRegExp class_token_regexp("(class|struct)[^;]*\\{\n", Qt::CaseSensitive);
+  class_token_regexp.setMinimal(true);
   int token_position = block.indexOf(class_token_regexp);
 
+  QList<ParsedClass> block_class_list;
   while (token_position != -1) {
     QString class_block;
     ParsedClass parsed_class;
-
-    parsed_class.class_name = FindClassName(block, token_position);
-    parsed_class.class_header = FindHeader(block, token_position);
 
     int open_curvy_brace_position = block.indexOf("{", token_position);
     int next_open_curvy_brace_position = open_curvy_brace_position;
@@ -48,13 +44,24 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
       }
     };
 
-    class_block = InsertSectionToClass(class_block);
+    QString new_class_block = InsertSectionToClass(class_block);
+    if (class_block != new_class_block) {
+      block.replace(class_block, new_class_block);
 
+      close_curvy_brace_position +=
+          new_class_block.count() - class_block.count();
+
+      class_block = new_class_block;
+    }
+
+    parsed_class.class_name = FindClassName(block, token_position);
+    parsed_class.class_header = FindHeader(block, token_position);
     QString first_header_word = parsed_class.class_header.section(" ", 0, 0);
     block.replace(token_position,
                   close_curvy_brace_position - token_position + 1,
                   first_header_word + " ##" + parsed_class.class_name + "##");
 
+    qDebug().noquote() << block;
     parsed_class.inner_classes = FindClassBlocksInString(class_block);
 
     QString trimmed_class_block = class_block.trimmed();
@@ -66,6 +73,7 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
 
     parsed_class.split_class_body =
         SplitClassBlockToSections(trimmed_class_block);
+
     block_class_list.push_back(parsed_class);
 
     token_position = block.indexOf(class_token_regexp);
@@ -83,10 +91,9 @@ QString ClassBreaker::FindClassName(const QString& block, int token_position) {
 
 QString ClassBreaker::FindClassHeader(const QString& block,
                                       int token_position) {
-  QString edge_token = "{\n";
-  int section_position = block.indexOf(edge_token);
-  return block.mid(token_position,
-                   section_position + edge_token.count() - token_position);
+  QRegExp section_regexp = SectionFinderRegExp();
+  int section_position = block.indexOf(section_regexp);
+  return block.mid(token_position, section_position - token_position);
 }
 
 QString ClassBreaker::FindStructHeader(const QString& block,
@@ -225,8 +232,6 @@ QString ClassBreaker::CleanClassFromMacros(const QString& class_string) {
   macro_braced_regexp.setMinimal(true);
   macro_unbraced_regexp.setMinimal(true);
 
-  qDebug() << class_string.contains(macro_unbraced_regexp);
-
   QString macrossless_string = class_string;
   macrossless_string.remove(macro_braced_regexp);
   macrossless_string.remove(macro_unbraced_regexp);
@@ -239,10 +244,9 @@ QString ClassBreaker::InsertSectionToClass(const QString& class_string) {
   QString clean_string = CleanClassFromMacros(class_string).trimmed();
   QString first_line_after_header =
       clean_string.left(clean_string.indexOf("\n"));
-  qDebug() << first_line_after_header;
   if (!first_line_after_header.contains(SectionFinderRegExp())) {
     return_string.insert(return_string.indexOf(first_line_after_header),
-                         " private:\n");
+                         "\n private:\n");
   }
   return return_string;
 }
