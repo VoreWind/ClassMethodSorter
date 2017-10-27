@@ -14,9 +14,7 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
     return {};
   }
 
-  QRegExp class_token_regexp("(class|struct)[^;]*\\{\n", Qt::CaseSensitive);
-  class_token_regexp.setMinimal(true);
-  int token_position = block.indexOf(class_token_regexp);
+  int token_position = FindClassTokenPosition(block);
 
   QList<ParsedClass> block_class_list;
   while (token_position != -1) {
@@ -66,7 +64,6 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
                   close_curvy_brace_position - token_position + 1,
                   first_header_word + " ##" + parsed_class.class_name + "##");
 
-    qDebug().noquote() << block;
     parsed_class.inner_classes = FindClassBlocksInString(class_block);
 
     QString trimmed_class_block = class_block.trimmed();
@@ -76,17 +73,36 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
 
     block_class_list.push_back(parsed_class);
 
-    token_position = block.indexOf(class_token_regexp);
+    token_position = FindClassTokenPosition(block);
   };
   return block_class_list;
 }
 
+int ClassBreaker::FindClassTokenPosition(const QString& block) {
+  QRegExp class_token_regexp("(class|struct)[^;]*\\{\n", Qt::CaseSensitive);
+  class_token_regexp.setMinimal(true);
+
+  int token_position = block.indexOf(class_token_regexp);
+
+  while (block.lastIndexOf("//", token_position) >
+             block.lastIndexOf("\n", token_position) &&
+         token_position != -1) {
+    qDebug() << token_position;
+    token_position = block.indexOf(class_token_regexp, token_position + 1);
+  }
+
+  return token_position;
+}
+
 QString ClassBreaker::FindClassName(const QString& block, int token_position) {
-  int first_space_position = block.indexOf(" ", token_position);
-  first_space_position++;
-  int second_space_position = block.indexOf(" ", first_space_position + 1);
-  return block.mid(first_space_position,
-                   second_space_position - first_space_position);
+  QString right_string = block.right(block.count() - token_position);
+  int section_index = 1;
+  QString class_name = right_string.section(" ", section_index, section_index);
+  while (class_name.toUpper() == class_name) {
+    class_name = right_string.section(" ", section_index, section_index);
+    ++section_index;
+  }
+  return class_name;
 }
 
 QString ClassBreaker::FindClassHeader(const QString& block,

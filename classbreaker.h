@@ -30,6 +30,8 @@ class ClassBreaker {
                                    QString& initial_string);
   static void SortClassSections(ParsedClass& parsed_class);
 
+  static int FindClassTokenPosition(const QString& block);
+
  private:
   static QList<int> BuildSectionPositionList(const QString& class_block);
   static QString FindClassName(const QString& block, int token_position);
