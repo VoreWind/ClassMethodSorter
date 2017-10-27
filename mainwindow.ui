@@ -88,39 +88,54 @@
     <item row="1" column="0" colspan="4">
      <widget class="QPlainTextEdit" name="segment_text_edit">
       <property name="plainText">
-       <string>#ifndef USERMODEL_H
-#define USERMODEL_H
+       <string>#ifndef ALGORITHM_H
+#define ALGORITHM_H
 
-#include &lt;QAbstractTableModel&gt;
 
-#include &lt;QList&gt;
+#include &lt;QObject&gt;
 
-/// Модель для работы со списком пользователей, имеющих хранилища.
-class UserModel : public QAbstractTableModel {
+#include &lt;model.h&gt;
+#include &lt;paramsmodel.h&gt;
+
+class Algorithm : public QObject, public IDescriber, public ChangesHolder {
   Q_OBJECT
-
-  /// Информация о конкретном пользователе.
-  struct UserInfo {
-   public:
-    QString user_name;
-    bool is_valid = false;
-  };
-  using UserList = QList&lt;UserInfo&gt;;
-
  public:
-  explicit UserModel(QObject* parent = nullptr);
+  Algorithm();
+  ~Algorithm() noexcept override;
+
+  void SetName(const QString&amp; name);
+  void SetInCpDictionary(bool is_in_cp_dictionary);
+  void SetStorageId(int storage_id);
+  void SetType(int type);
+
+  QString GetName() const;
+  bool IsInCpDictionary() const;
+  int GetStorageId() const;
+  int GetType() const;
+
+  AlgorithmParamsModel* GetParams() const;
+  AlgorithmOidsModel* GetOids() const;
+
+  // IDescriber.
+  QString GetDescription() const override;
+
+  // ChangedHolder.
+  void SetChanged(bool is_changed) override;
+  bool GetChanged() const override;
+
+ signals:
+  void Changed();
 
  private:
-  /// Проверяет работоспособность хранилища указанного пользователя. False - не
-  /// рабочее.
-  bool IsUserStorageValid(const QString&amp; user_name) const;
-
- private:
-  /// Список пользоваталей.
-  UserList users_;
+  QString name_;                      /// Описание.
+  bool is_in_cp_dictionary_ = false;  /// Есть ли алгоритм в КП?
+  int algorithm_type_ = -1;           /// Тип алгоритма.
+  int storage_id_ = -1;               /// ID в хранилище.
+  AlgorithmOidsModel oids_;           /// OID'ы.
+  AlgorithmParamsModel params_;       /// Параметры.
 };
 
-#endif  // USERMODEL_H
+#endif  // ALGORITHM_H
 </string>
       </property>
      </widget>
