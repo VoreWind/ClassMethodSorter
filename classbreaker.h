@@ -43,7 +43,8 @@ class ClassBreaker {
   static QString AssembleBlockFromSections(QVector<QString> sections,
                                            bool is_public_section_shown = true);
   static QString CleanClassFromMacros(const QString& class_string);
-  static QString InsertSectionToClass(const QString& class_string);
+  static QString InsertSectionToClass(const QString& class_string,
+                                      bool is_class);
 
   static const QStringList kSectionNames;
   static const int kSectionsAmount = 7;

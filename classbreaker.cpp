@@ -44,7 +44,11 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
       }
     };
 
-    QString new_class_block = InsertSectionToClass(class_block);
+    QString first_header_word =
+        FindHeader(block, token_position).section(" ", 0, 0);
+    bool is_class = first_header_word == "class";
+
+    QString new_class_block = InsertSectionToClass(class_block, is_class);
     if (class_block != new_class_block) {
       block.replace(class_block, new_class_block);
 
@@ -52,11 +56,12 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
           new_class_block.count() - class_block.count();
 
       class_block = new_class_block;
+
+      parsed_class.is_public_section_shown = is_class;
     }
 
     parsed_class.class_name = FindClassName(block, token_position);
     parsed_class.class_header = FindHeader(block, token_position);
-    QString first_header_word = parsed_class.class_header.section(" ", 0, 0);
     block.replace(token_position,
                   close_curvy_brace_position - token_position + 1,
                   first_header_word + " ##" + parsed_class.class_name + "##");
@@ -65,11 +70,6 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
     parsed_class.inner_classes = FindClassBlocksInString(class_block);
 
     QString trimmed_class_block = class_block.trimmed();
-    if (IsClassBlockStatringWithSectionToken(trimmed_class_block) &&
-        parsed_class.class_header.startsWith("struct")) {
-      parsed_class.is_public_section_shown = false;
-      trimmed_class_block.prepend("public:\n");
-    }
 
     parsed_class.split_class_body =
         SplitClassBlockToSections(trimmed_class_block);
@@ -239,14 +239,16 @@ QString ClassBreaker::CleanClassFromMacros(const QString& class_string) {
   return macrossless_string;
 }
 
-QString ClassBreaker::InsertSectionToClass(const QString& class_string) {
+QString ClassBreaker::InsertSectionToClass(const QString& class_string,
+                                           bool is_class) {
   QString return_string = class_string;
   QString clean_string = CleanClassFromMacros(class_string).trimmed();
   QString first_line_after_header =
       clean_string.left(clean_string.indexOf("\n"));
   if (!first_line_after_header.contains(SectionFinderRegExp())) {
+    QString token_string = is_class ? "private" : "public";
     return_string.insert(return_string.indexOf(first_line_after_header),
-                         "\n private:\n");
+                         token_string + ":\n");
   }
   return return_string;
 }
