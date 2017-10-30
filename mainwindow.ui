@@ -17,6 +17,9 @@
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
      <widget class="QComboBox" name="mode_combo">
+      <property name="currentIndex">
+       <number>2</number>
+      </property>
       <item>
        <property name="text">
         <string>Sort</string>
@@ -93,54 +96,42 @@
     <item row="1" column="0" colspan="4">
      <widget class="QPlainTextEdit" name="segment_text_edit">
       <property name="plainText">
-       <string>#ifndef ALGORITHM_H
-#define ALGORITHM_H
+       <string>#ifndef ASNBASE_H
+#define ASNBASE_H
 
+#include &lt;stdio.h&gt;
 
-#include &lt;QObject&gt;
+#include &lt;asnprim.h&gt;
+#include &lt;trace.h&gt;
 
-#include &lt;model.h&gt;
-#include &lt;paramsmodel.h&gt;
+#ifdef __cplusplus
+extern &quot;C&quot; {
+#endif
 
-class Algorithm : public QObject, public IDescriber, public ChangesHolder {
-  Q_OBJECT
- public:
-  Algorithm();
-  ~Algorithm() noexcept override;
+#define TEMPORAL_PATH_STRING_SIZE 255
+#define TEMPORAL_DATE_STRING_SIZE 30
 
-  void SetName(const QString&amp; name);
-  void SetInCpDictionary(bool is_in_cp_dictionary);
-  void SetStorageId(int storage_id);
-  void SetType(int type);
+#define SIZE_OF_BYTE 8
 
-  QString GetName() const;
-  bool IsInCpDictionary() const;
-  int GetStorageId() const;
-  int GetType() const;
+int number_can_be_stored_in_int(unsigned long number);
+void invert_array_if_little_endian(unsigned char *array, size_t size);
 
-  AlgorithmParamsModel* GetParams() const;
-  AlgorithmOidsModel* GetOids() const;
+#define convert_array_to_big_endian(array, size) \
+  invert_array_if_little_endian(array, size)
 
-  // IDescriber.
-  QString GetDescription() const override;
+#define convert_array_from_big_endian(array, size) \
+  invert_array_if_little_endian(array, size)
 
-  // ChangedHolder.
-  void SetChanged(bool is_changed) override;
-  bool GetChanged() const override;
+int copy_buff_t(buff_t *dst, buff_t *src);
+buff_t fill_copy_of_buff_t(buff_t source);
+buff_t *create_copy_of_buff_t(buff_t *source);
+void ReverseArray(unsigned char *array, size_t size);
 
- signals:
-  void Changed();
+#ifdef __cplusplus
+} /* extern &quot;C&quot; { */
+#endif
 
- private:
-  QString name_;                      /// Описание.
-  bool is_in_cp_dictionary_ = false;  /// Есть ли алгоритм в КП?
-  int algorithm_type_ = -1;           /// Тип алгоритма.
-  int storage_id_ = -1;               /// ID в хранилище.
-  AlgorithmOidsModel oids_;           /// OID'ы.
-  AlgorithmParamsModel params_;       /// Параметры.
-};
-
-#endif  // ALGORITHM_H
+#endif  // ASNBASE_H
 </string>
       </property>
      </widget>

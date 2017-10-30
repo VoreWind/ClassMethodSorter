@@ -12,6 +12,7 @@
 
 #include <classbreaker.h>
 #include <headerguardfixer.h>
+#include <purecbreaker.h>
 #include <sectionsorter.h>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -68,6 +69,8 @@ void MainWindow::ReorderText() {
   } else if (mode_ == kFixHeaderGuards) {
     text_section = HeaderGuardFixer::FixHeaderGuardsInText(
         text_section, ui->name_line_edit->text());
+  } else if (mode_ == kSortC) {
+    text_section = PureCBreaker::SortHeader(text_section);
   }
   ui->segment_text_edit->setPlainText(text_section);
 }
@@ -115,6 +118,8 @@ void MainWindow::ReorderAllTextInFolder() {
     } else if (mode_ == kFixHeaderGuards) {
       parsed_file = HeaderGuardFixer::FixHeaderGuardsInText(
           file_contents, source_file_info.fileName());
+    } else if (mode_ == kSortC) {
+      parsed_file = PureCBreaker::SortHeader(file_contents);
     }
 
     if (parsed_file.isEmpty()) {
