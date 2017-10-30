@@ -2,7 +2,9 @@
 
 #include <QDebug>
 
+#include <membersorter.h>
 #include <sectionsorter.h>
+#include <sorter.h>
 
 QString PureCBreaker::FindRelevantCode(QString &header_code) {
   const QString opening_tag = "#ifdef __cplusplus\nextern \"C\" {\n#endif\n";
@@ -30,7 +32,8 @@ QString PureCBreaker::SortHeader(const QString &header_code) {
 
   QVector<QStringList> groups = PlaceMethodsIntoGroups(macros, methods);
   SortGroups(groups);
-  return AssembleHeaderBack(relevant_code, groups);
+  AssembleHeaderBack(non_const_header_code, groups);
+  return non_const_header_code;
 }
 
 QStringList PureCBreaker::RemoveMacrosFromCode(QString &relevant_code) {
@@ -119,15 +122,91 @@ QVector<QStringList> PureCBreaker::PlaceMethodsIntoGroups(
   return groups;
 }
 
-void PureCBreaker::SortGroups(QVector<QStringList> &groups) {}
+void PureCBreaker::SortGroups(QVector<QStringList> &groups) {
+  for (int i = 0; i < kBlocksAmount; ++i) {
+    if (i >= kStaticNonConstantMembers && i < kConstantMembers) {
+      MemberSorter sorter;
+      QString sorted_string = sorter.SortMembers(groups[i]);
+      if (!sorted_string.isEmpty()) {
+        groups[i] = QStringList(sorted_string);
+      }
+    } else {
+      std::sort(groups[i].begin(), groups[i].end(), SortingForPureC);
+    }
+  }
+}
 
-QString PureCBreaker::AssembleHeaderBack(const QString &relevant_code,
-                                         QVector<QStringList> groups) {
-  return relevant_code;
+void PureCBreaker::AssembleHeaderBack(QString &header_code,
+                                      QVector<QStringList> groups) {
+  QString parsed_code;
+  for (auto group : groups) {
+    for (auto element : group) {
+      parsed_code.append(element + ";\n");
+    }
+    parsed_code.append("\n");
+  }
+  header_code.replace("##relevant_code##", parsed_code);
 }
 
 void PureCBreaker::AddStringIntoListOfLists(int list_index,
                                             const QString &string,
                                             QVector<QStringList> &groups) {
   groups[list_index].push_back(string);
+}
+
+bool PureCBreaker::SortingForPureC(const QString &left_method,
+                                   const QString &right_method) {
+  QString left_truncated_method =
+      Sorter::TruncateCommentsFromElement(left_method);
+  QString right_truncated_method =
+      Sorter::TruncateCommentsFromElement(right_method);
+
+  int right_method_string_count = Sorter::ElementStringAmount(right_method);
+  int left_method_string_count = Sorter::ElementStringAmount(left_method);
+
+  const int one_line_method_string_count = 0;
+  if (right_method_string_count == one_line_method_string_count &&
+      left_method_string_count == one_line_method_string_count) {
+    return left_method < right_method;
+  }
+
+  if (right_method_string_count == one_line_method_string_count ||
+      left_method_string_count == one_line_method_string_count) {
+    return left_method_string_count < right_method_string_count;
+  }
+
+  int right_method_params_count = MethodParamsAmount(right_truncated_method);
+  int left_method_params_count = MethodParamsAmount(left_truncated_method);
+
+  if (right_method_params_count != left_method_params_count) {
+    return left_method_params_count < right_method_params_count;
+  }
+
+  if (right_method_string_count != left_method_string_count) {
+    return left_method_string_count < right_method_string_count;
+  }
+
+  int right_truncated_method_string_count =
+      Sorter::ElementStringAmount(right_truncated_method);
+  int left_truncated_method_string_count =
+      Sorter::ElementStringAmount(left_truncated_method);
+
+  if (right_truncated_method_string_count !=
+      left_truncated_method_string_count) {
+    return left_truncated_method_string_count <
+           right_truncated_method_string_count;
+  }
+
+  int left_method_brace_position = left_truncated_method.indexOf("(");
+  int right_method_brace_position = right_truncated_method.indexOf("(");
+
+  if (right_method_brace_position != left_method_brace_position) {
+    return left_method_brace_position < right_method_brace_position;
+  }
+
+  return left_truncated_method < right_truncated_method;
+}
+
+int PureCBreaker::MethodParamsAmount(const QString &method) {
+  return method.count(",");
 }
