@@ -146,5 +146,11 @@ void MainWindow::SetMode(int mode) {
     ui->sort_button->setText("Fix Guards");
     ui->name_line_edit->setVisible(true);
     ui->name_label->setVisible(true);
+  } else if (mode == 2) {
+    mode_ = kSortC;
+    ui->sort_all_button->setText("Sort All");
+    ui->sort_button->setText("Sort");
+    ui->name_line_edit->setVisible(false);
+    ui->name_label->setVisible(false);
   }
 }

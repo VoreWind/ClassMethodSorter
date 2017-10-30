@@ -11,7 +11,7 @@ class MainWindow : public QMainWindow {
   Q_OBJECT
 
  public:
-  enum ProgramMode { kSort, kFixHeaderGuards };
+  enum ProgramMode { kSort, kFixHeaderGuards, kSortC };
 
   explicit MainWindow(QWidget *parent = 0);
   QString ReorderTextFromString(const QString &text_section);
