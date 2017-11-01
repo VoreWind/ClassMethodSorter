@@ -8,6 +8,7 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QFileDialog>
+#include <QProcess>
 #include <QString>
 
 #include <classbreaker.h>
@@ -127,14 +128,18 @@ void MainWindow::ReorderAllTextInFolder() {
       continue;
     }
 
-    QFile destination_file(ui->destination_directory_line->text() +
-                           subdirectory_path + "/" +
-                           source_file_info.fileName());
+    QString destination_file_name = ui->destination_directory_line->text() +
+                                    subdirectory_path + "/" +
+                                    source_file_info.fileName();
+    QFile destination_file(destination_file_name);
 
     destination_file.open(QIODevice::WriteOnly);
 
     QTextStream out(&destination_file);
     out << parsed_file;
+    destination_file.close();
+
+    //    QProcess::startDetached("clang-format-3.8", {destination_file_name});
   }
 }
 
