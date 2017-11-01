@@ -139,7 +139,7 @@ void MainWindow::ReorderAllTextInFolder() {
     out << parsed_file;
     destination_file.close();
 
-    //    QProcess::startDetached("clang-format-3.8", {destination_file_name});
+    QProcess::startDetached("clang-format-3.8", {"-i", destination_file_name});
   }
 }
 
