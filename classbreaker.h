@@ -6,7 +6,6 @@
 #include <QVector>
 
 struct ParsedClass {
-
   bool is_public_section_shown = true;
 
   QString class_header;
@@ -17,8 +16,7 @@ struct ParsedClass {
 };
 
 class ClassBreaker {
-
-public:
+ public:
   enum Sections {
     kPublic,
     kSignals,
@@ -35,7 +33,7 @@ public:
   static QString AssembleClassBack(ParsedClass parsed_class,
                                    QString &initial_string);
 
-private:
+ private:
   static QList<int> BuildSectionPositionList(const QString &class_block);
   static QRegExp SectionFinderRegExp();
   static QString CleanClassFromMacros(const QString &class_string);
@@ -56,6 +54,10 @@ private:
   static const int kSectionsAmount = 7;
 
   static const QStringList kSectionNames;
+
+  static int FindCloseCurvyBracePositions(QString &class_block,
+                                          int token_position,
+                                          QString &block);
 };
 
-#endif // CLASSBREAKER_H
+#endif  // CLASSBREAKER_H

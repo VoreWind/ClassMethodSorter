@@ -9,6 +9,33 @@ const QStringList ClassBreaker::kSectionNames = {
     "public:",    "signals:",       "public slots:", "protected slots:",
     "protected:", "private slots:", "private:"};
 
+int ClassBreaker::FindCloseCurvyBracePositions(QString& class_block,
+                                               int token_position,
+                                               QString& block) {
+  int open_curvy_brace_position = block.indexOf("{", token_position);
+  int next_open_curvy_brace_position = open_curvy_brace_position;
+  int close_curvy_brace_position = open_curvy_brace_position;
+
+  while (true) {
+    if (block.indexOf("}", close_curvy_brace_position + 1) != -1) {
+      close_curvy_brace_position =
+          block.indexOf("}", close_curvy_brace_position + 1);
+    }
+    next_open_curvy_brace_position =
+        block.indexOf("{", next_open_curvy_brace_position + 1);
+
+    if (next_open_curvy_brace_position > close_curvy_brace_position ||
+        next_open_curvy_brace_position == -1) {
+      class_block =
+          block.mid(open_curvy_brace_position + 2,
+                    close_curvy_brace_position - open_curvy_brace_position - 1);
+      break;
+    }
+  };
+
+  return close_curvy_brace_position;
+}
+
 QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
   if (DoesBlockContainUnparseableCode(block)) {
     return {};
@@ -21,26 +48,10 @@ QList<ParsedClass> ClassBreaker::FindClassBlocksInString(QString& block) {
     QString class_block;
     ParsedClass parsed_class;
 
-    int open_curvy_brace_position = block.indexOf("{", token_position);
-    int next_open_curvy_brace_position = open_curvy_brace_position;
-    int close_curvy_brace_position = open_curvy_brace_position;
+    int close_curvy_brace_position =
+        FindCloseCurvyBracePositions(class_block, token_position, block);
 
-    while (true) {
-      if (block.indexOf("}", close_curvy_brace_position + 1) != -1) {
-        close_curvy_brace_position =
-            block.indexOf("}", close_curvy_brace_position + 1);
-      }
-      next_open_curvy_brace_position =
-          block.indexOf("{", next_open_curvy_brace_position + 1);
-
-      if (next_open_curvy_brace_position > close_curvy_brace_position ||
-          next_open_curvy_brace_position == -1) {
-        class_block = block.mid(
-            open_curvy_brace_position + 2,
-            close_curvy_brace_position - open_curvy_brace_position - 1);
-        break;
-      }
-    };
+    qDebug() << class_block;
 
     QString first_header_word =
         FindHeader(block, token_position).section(" ", 0, 0);
@@ -87,7 +98,6 @@ int ClassBreaker::FindClassTokenPosition(const QString& block) {
   while (block.lastIndexOf("//", token_position) >
              block.lastIndexOf("\n", token_position) &&
          token_position != -1) {
-    qDebug() << token_position;
     token_position = block.indexOf(class_token_regexp, token_position + 1);
   }
 
@@ -115,7 +125,7 @@ QString ClassBreaker::FindClassHeader(const QString& block,
 QString ClassBreaker::FindStructHeader(const QString& block,
                                        int token_position) {
   QString edge_token = "{\n";
-  int section_position = block.indexOf(edge_token);
+  int section_position = block.indexOf(edge_token, token_position);
   return block.mid(token_position,
                    section_position + edge_token.count() - token_position);
 }
