@@ -1,33 +1,44 @@
 #ifndef PURECBREAKER_H
 #define PURECBREAKER_H
 
+#include <QMap>
 #include <QString>
 
 class PureCBreaker {
-
-public:
+ public:
   static QString FindRelevantCode(QString &header_code);
   static QString SortHeader(const QString &header_code);
 
-private:
+ private:
   enum Blocks {
+    kIncludes,
+    kExternC,
     kMacros,
     kDefineCostants,
-
     kTypedefs,
+    kTypedefEnums,
     kEnums,
-    kInlineStructs,
-    kStaticMethods,
-    kNonConstantMethods,
-    kConstantMethods,
-    kStaticNonConstantMembers,
-    kStaticConstantMembers,
-    kNonConstantMembers,
-    kConstantMembers,
+    kTypedefStructs,
+    kStructs,
+    kFunctions,
+    kExternVariables,
+    kOtherVariables
   };
-  static QStringList ExtractStructsFromCode(QString &code_block);
-  static QStringList RemoveMacrosFromCode(QString &relevant_code);
-  static QStringList RemoveStructuresFromCode(QString &relevant_code);
+
+  static bool IsBlockMacro(const QString &block);
+  static bool IsBlockDefinedConstant(const QString &block);
+  static bool IsBlockTypedefEnum(const QString &block);
+  static bool IsBlockEnum(const QString &block);
+  static bool IsBlockFunction(const QString &block);
+  static bool IsBlockExternVariable(const QString &block);
+  static bool IsBlockOtherVariable(const QString &block);
+  static bool IsBlockTypedef(const QString &block);
+
+  static QMap<Blocks, bool (*)(const QString &)> PopulateAssistant();
+  static void ExtractMacrosFromCode(QString &relevant_code,
+                                    QVector<QStringList> &groups);
+  static void ExtractStructuresFromCode(QString &relevant_code,
+                                        QVector<QStringList> &groups);
   static QStringList SplitCodeToMethods(QString &relevant_code);
   static int MethodParamsAmount(const QString &method);
   static void SortGroups(QVector<QStringList> &groups);
@@ -38,12 +49,16 @@ private:
   static void AssembleHeaderBack(QString &header_code,
                                  QVector<QStringList> groups);
 
-  static QVector<QStringList>
-  PlaceMethodsIntoGroups(const QStringList &macros, const QStringList &methods);
+  static void PlaceMethodsIntoGroups(const QStringList &methods,
+                                     QVector<QStringList> &groups);
 
-  static void AddStringIntoListOfLists(int list_index, const QString &string,
+  static void AddStringIntoListOfLists(int list_index,
+                                       const QString &string,
                                        QVector<QStringList> &groups);
   static const int kBlocksAmount = 12;
+  static const QMap<Blocks, bool (*)(const QString &)> kSortingAssistant;
+
+  static int FindCloseCurvyBracePositions(int token_position, QString &block);
 };
 
-#endif // PURECBREAKER_H
+#endif  // PURECBREAKER_H

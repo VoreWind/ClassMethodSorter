@@ -6,6 +6,9 @@
 #include <sectionsorter.h>
 #include <sorter.h>
 
+const QMap<PureCBreaker::Blocks, bool (*)(const QString &)>
+    PureCBreaker::kSortingAssistant = PopulateAssistant();
+
 QString PureCBreaker::FindRelevantCode(QString &header_code) {
   const QString opening_tag = "#ifdef __cplusplus\nextern \"C\" {\n#endif\n";
   const QString closing_tag = "\n#ifdef __cplusplus\n}";
@@ -27,16 +30,61 @@ QString PureCBreaker::FindRelevantCode(QString &header_code) {
 QString PureCBreaker::SortHeader(const QString &header_code) {
   QString non_const_header_code = header_code;
   QString relevant_code = FindRelevantCode(non_const_header_code).trimmed();
-  QStringList macros = RemoveMacrosFromCode(relevant_code);
-  QStringList methods = SplitCodeToMethods(relevant_code);
+  QVector<QStringList> groups;
+  groups.resize(kBlocksAmount);
 
-  QVector<QStringList> groups = PlaceMethodsIntoGroups(macros, methods);
+  ExtractMacrosFromCode(relevant_code, groups);
+  ExtractStructuresFromCode(relevant_code, groups);
+
+  QStringList methods = SplitCodeToMethods(relevant_code);
+  PlaceMethodsIntoGroups(methods, groups);
+
   SortGroups(groups);
   AssembleHeaderBack(non_const_header_code, groups);
   return non_const_header_code;
 }
 
-QStringList PureCBreaker::RemoveMacrosFromCode(QString &relevant_code) {
+bool PureCBreaker::IsBlockTypedefEnum(const QString &block) {
+  return block.contains(" enum ") && block.contains(" typedef ");
+}
+
+bool PureCBreaker::IsBlockEnum(const QString &block) {
+  return block.contains(" enum ") && !block.contains(" typedef ");
+}
+
+bool PureCBreaker::IsBlockFunction(const QString &block) {
+  return block.contains("(");
+}
+
+bool PureCBreaker::IsBlockExternVariable(const QString &block) {
+  return !block.contains("(") && block.contains(" extern ");
+}
+
+bool PureCBreaker::IsBlockOtherVariable(const QString &block) {
+  return !block.contains("(") && !block.contains(" extern ") &&
+         !block.contains(" struct ") && !block.contains(" enum ") &&
+         !block.contains(" typedef ");
+}
+
+bool PureCBreaker::IsBlockTypedef(const QString &block) {
+  return !block.contains(" struct ") && !block.contains(" enum ") &&
+         block.contains(" typedef ");
+}
+
+QMap<PureCBreaker::Blocks, bool (*)(const QString &)>
+PureCBreaker::PopulateAssistant() {
+  QMap<Blocks, bool (*)(const QString &)> assistant;
+  assistant.insert(kTypedefEnums, *IsBlockTypedefEnum);
+  assistant.insert(kEnums, *IsBlockEnum);
+  assistant.insert(kFunctions, *IsBlockFunction);
+  assistant.insert(kExternVariables, *IsBlockExternVariable);
+  assistant.insert(kOtherVariables, *IsBlockOtherVariable);
+  assistant.insert(kTypedefs, *IsBlockTypedef);
+  return assistant;
+}
+
+void PureCBreaker::ExtractMacrosFromCode(QString &relevant_code,
+                                         QVector<QStringList> &groups) {
   const QString define_starter = "#define ";
   QStringList macros;
   int macro_index = relevant_code.indexOf(define_starter);
@@ -54,21 +102,7 @@ QStringList PureCBreaker::RemoveMacrosFromCode(QString &relevant_code) {
     relevant_code.remove(macro);
     macro_index = relevant_code.indexOf(define_starter);
   }
-  return macros;
-}
 
-QStringList PureCBreaker::RemoveStructuresFromCode(QString &relevant_code) {
-  return {};
-}
-
-QStringList PureCBreaker::SplitCodeToMethods(QString &relevant_code) {
-  return relevant_code.split(";", QString::SkipEmptyParts);
-}
-
-QVector<QStringList> PureCBreaker::PlaceMethodsIntoGroups(
-    const QStringList &macros, const QStringList &methods) {
-  QVector<QStringList> groups;
-  groups.resize(kBlocksAmount);
   for (auto macro : macros) {
     if (macro.contains("(")) {
       AddStringIntoListOfLists(kMacros, macro, groups);
@@ -78,53 +112,50 @@ QVector<QStringList> PureCBreaker::PlaceMethodsIntoGroups(
       continue;
     }
   }
+}
 
-  for (auto method : methods) {
-    if (method.contains(" enum")) {
-      AddStringIntoListOfLists(kEnums, method, groups);
-      continue;
-    } else if (method.contains("typedef ")) {
-      AddStringIntoListOfLists(kTypedefs, method, groups);
-      continue;
-    }
+void PureCBreaker::ExtractStructuresFromCode(QString &relevant_code,
+                                             QVector<QStringList> &groups) {
+  QRegExp typedef_struct_starter = QRegExp("(//[^\n]*\n)*typedef struct");
+  typedef_struct_starter.setMinimal(true);
+  int starter_index = relevant_code.indexOf(typedef_struct_starter);
 
-    if (method.contains("(")) {
-      if (method.contains("static ")) {
-        AddStringIntoListOfLists(kStaticMethods, method, groups);
-        continue;
-      }
-      if (method.contains("const ")) {
-        AddStringIntoListOfLists(kConstantMethods, method, groups);
-        continue;
-      }
-
-      AddStringIntoListOfLists(kNonConstantMethods, method, groups);
-      continue;
-    }
-
-    if (method.contains("static const ")) {
-      AddStringIntoListOfLists(kStaticConstantMembers, method, groups);
-      continue;
-    }
-    if (method.contains("static ")) {
-      AddStringIntoListOfLists(kStaticNonConstantMembers, method, groups);
-      continue;
-    }
-    if (method.contains("const ")) {
-      AddStringIntoListOfLists(kConstantMembers, method, groups);
-      continue;
-    }
-
-    AddStringIntoListOfLists(kNonConstantMembers, method, groups);
-    continue;
+  while (starter_index != -1) {
+    int close_brace_position =
+        FindCloseCurvyBracePositions(starter_index, relevant_code);
+    QString struct_block;
+    int semicolon_position = relevant_code.indexOf(";", close_brace_position);
+    struct_block = relevant_code.mid(starter_index,
+                                     semicolon_position - starter_index + 1);
+    AddStringIntoListOfLists(kTypedefStructs, struct_block, groups);
+    relevant_code.remove(struct_block);
+    starter_index = relevant_code.indexOf(typedef_struct_starter);
   }
+}
 
-  return groups;
+QStringList PureCBreaker::SplitCodeToMethods(QString &relevant_code) {
+  return relevant_code.split(";", QString::SkipEmptyParts);
+}
+
+void PureCBreaker::PlaceMethodsIntoGroups(const QStringList &methods,
+                                          QVector<QStringList> &groups) {
+  groups.resize(kBlocksAmount);
+
+  for (const auto &method : methods) {
+    QMapIterator<Blocks, bool (*)(const QString &)> i(kSortingAssistant);
+    while (i.hasNext()) {
+      i.next();
+      if (i.value()(method)) {
+        AddStringIntoListOfLists(i.key(), method, groups);
+        continue;
+      }
+    }
+  }
 }
 
 void PureCBreaker::SortGroups(QVector<QStringList> &groups) {
   for (int i = 0; i < kBlocksAmount; ++i) {
-    if (i >= kStaticNonConstantMembers && i < kConstantMembers) {
+    if (i == kExternVariables) {
       MemberSorter sorter;
       QString sorted_string = sorter.SortMembers(groups[i]);
       if (!sorted_string.isEmpty()) {
@@ -143,7 +174,10 @@ void PureCBreaker::AssembleHeaderBack(QString &header_code,
     for (auto element : group) {
       parsed_code.append(element + ";\n");
     }
-    parsed_code.append("\n");
+
+    if (!group.isEmpty()) {
+      parsed_code.append("\n");
+    }
   }
   header_code.replace("##relevant_code##", parsed_code);
 }
@@ -211,8 +245,25 @@ int PureCBreaker::MethodParamsAmount(const QString &method) {
   return method.count(",");
 }
 
-QStringList PureCBreaker::ExtractStructsFromCode(QString &code_block) {
-  int struct_token_position = code_block.indexOf("struct");
-  while (struct_token_position != -1) {
-  }
+int PureCBreaker::FindCloseCurvyBracePositions(int token_position,
+                                               QString &block) {
+  int open_curvy_brace_position = block.indexOf("{", token_position);
+  int next_open_curvy_brace_position = open_curvy_brace_position;
+  int close_curvy_brace_position = open_curvy_brace_position;
+
+  while (true) {
+    if (block.indexOf("}", close_curvy_brace_position + 1) != -1) {
+      close_curvy_brace_position =
+          block.indexOf("}", close_curvy_brace_position + 1);
+    }
+    next_open_curvy_brace_position =
+        block.indexOf("{", next_open_curvy_brace_position + 1);
+
+    if (next_open_curvy_brace_position > close_curvy_brace_position ||
+        next_open_curvy_brace_position == -1) {
+      break;
+    }
+  };
+
+  return close_curvy_brace_position;
 }

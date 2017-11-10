@@ -38,7 +38,7 @@ QString MainWindow::ReorderTextFromString(const QString &text_section) {
       ClassBreaker::FindClassBlocksInString(non_const_section);
 
   if (broken_classes.count() == 0) {
-    return "";
+    return QString();
   }
 
   for (auto broken_class : broken_classes) {

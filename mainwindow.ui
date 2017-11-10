@@ -18,7 +18,7 @@
     <item row="0" column="0">
      <widget class="QComboBox" name="mode_combo">
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <item>
        <property name="text">
@@ -96,27 +96,149 @@
     <item row="1" column="0" colspan="4">
      <widget class="QPlainTextEdit" name="segment_text_edit">
       <property name="plainText">
-       <string>#ifndef GENERATEDMASKFROMKEYNOTE_H
-#define GENERATEDMASKFROMKEYNOTE_H
+       <string>#ifndef CRL_H
+#define CRL_H
 
-#include &lt;generatedmaskprovider.h&gt;
+#ifndef _XOPEN_SOURCE
+#define _XOPEN_SOURCE 700
+#endif
 
-#include &lt;functional&gt;
+#ifndef _BSD_SOURCE
+#define _BSD_SOURCE 1
+#endif
 
-class GeneratedMaskFromKeynote : public GeneratedMaskProvider {
- public:
-  using RandomProvider = std::function&lt;void(int, QByteArray&amp;)&gt;;
+#ifdef __cplusplus
+extern &quot;C&quot; {
+#endif
 
-  explicit GeneratedMaskFromKeynote(RandomProvider random_provider);
-  ~GeneratedMaskFromKeynote() noexcept override;
+//#include &lt;def.h&gt;
+#include &lt;time.h&gt;
 
- private:
-  QByteArray GenerateMaskBySize(quint32 mask_size) override;
+#include &quot;trace.h&quot;
 
-  RandomProvider provide_random_;
-};
+/// Структура списка отозванных сертификатов.
+typedef struct {
+  unsigned char *serial;     // Серийный номер
+  unsigned long serial_len;  // Длина серийного номера
 
-#endif  // GENERATEDMASKFROMKEYNOTE_H
+  time_t revocdate;           // Дата отзыва
+  unsigned long cert_reason;  // Причина отзыва для сертфиката
+} rev_cert_t;
+
+/// Структура СОС.
+typedef struct {
+  unsigned long version;  // Версия
+
+  char *issuer_e;   // Почтовый адрес эмитента
+  char *issuer_c;   // Страна эмитента
+  char *issuer_l;   // Город эмитента
+  char *issuer_o;   // Организация эмитента
+  char *issuer_ou;  // Подразделение эмитента
+  char *issuer_cn;  // Полное имя эмитента
+
+  time_t thisupdate;  // Дата выпуска
+  time_t nextupdate;  // Дата следующего выпуска
+
+  rev_cert_t *rev_certs;  // Список отозванных сертификатов
+  unsigned long rev_count;  // Количество сертификатов в списке
+
+  unsigned long long crlNumber;      // Порядковый номер crl
+  unsigned long long crlBaseNumber;  // Базовый номер crl
+
+  size_t reasons;
+
+  cert_ext_t *crl_exts;  // Расширения сертификата
+  unsigned long ext_count;  // Количество расширений сертификата
+
+  unsigned char *sign;     // Подпись
+  unsigned long sign_len;  // Длина подписи
+
+  char *sign_alg_id;  // Алгоритм подписи
+
+} crl_t;
+
+/// \param   *crl_exts структура расширений СОС.
+/// \brief   Очищает структуру списка отозванных сертификатов.
+void free_crl_ext(cert_ext_t *crl_exts);
+
+/// \param   *rev_cert структура списка отозванных сертификатов.
+/// \brief   Очищает структуру списка отозванных сертификатов.
+void free_rev_cert(rev_cert_t *rev_cert);
+
+/// \param   *crl структура списка отозванных сертификатов.
+/// \brief   Очищает структуру списка отозванных сертификатов.
+void free_crl(crl_t *crl);
+
+/// \param   *digital_crl двоичный СОС.
+/// \param   digital_crl_size длина СОС.
+/// \param   *crl структура разобранного СОС.
+/// \return  0 в случае успеха, иначе код ошибки.
+/// \brief   Раскодрует СОС и заполняет структуру СОС.
+int parse_crl(const unsigned char *digital_crl,
+              size_t digital_crl_size,
+              crl_t *crl);
+
+/// \param   *digital_crl двоичный СОС.
+/// \param   digital_crl_size длина СОС.
+/// \param   **signature подпись.
+/// \param   *signature_size длина подписи.
+/// \param   **crl_verify_blob двоичная часть проверяемого СОС.
+/// \param   *crl_verify_blob_size длина части проверяемого СОС.
+/// \return  0 в случае успеха, иначе код ошибки.
+/// \brief   Получает проверяемую часть и подпис СОС.
+int get_tbs_crl(const unsigned char *digial_crl,
+                size_t digital_crl_size,
+                unsigned char **signature,
+                size_t *signature_size,
+                unsigned char **crl_verify_blob,
+                size_t *crl_verify_blob_size);
+
+/// \param   *digital_cert двоичная часть сертификата.
+/// \param   digital_cert_size длина двоичной части сертификата.
+/// \param   *crl структура СОС.
+/// \param   **tbs_crl_blob двоичная часть СОС.
+/// \param   *tbs_crl_blob_size длина двоичной части СОС.
+/// \return  0 в случае успеха, иначе код ошибки.
+/// \brief   Cоздает подписываемую часть СОС.
+int create_tbs_crl(const unsigned char *digital_cert,
+                   size_t digital_cert_size,
+                   crl_t *crl,
+                   unsigned char **tbs_crl_blob,
+                   size_t *tbs_crl_blob_size);
+
+/// \param   *digital_cert двоичная часть сертификата.
+/// \param   digital_cert_size длина двоичной части сертификата.
+/// \param   *crl структура СОС.
+/// \param   *signature подпись.
+/// \param   signature_size длина подписи.
+/// \param   **digital_crl двоичная часть СОС.
+/// \param   *digital_crl_size длина двоичной части СОС.
+/// \return  0 в случае успеха, иначе код ошибки.
+/// \brief   Cоздает СОС с добавлением подписи над TBS базой СОС.
+int create_crl(const unsigned char *digital_cert,
+               size_t digital_cert_size,
+               crl_t *crl,
+               unsigned char *signature,
+               size_t signature_size,
+               unsigned char **digital_crl,
+               size_t *digital_crl_size);
+
+/// \param   *ctx контекст для АСН структуры.
+/// \param   *digital_cert двоичная часть сертификата.
+/// \param   digital_cert_size длина двоичной части сертификата.
+/// \param   *crl структура СОС.
+/// \return  0 в случае успеха, иначе код ошибки.
+/// \brief   Записывает данные в АСН структуру СОС.
+int make_tbs_crl(void *ctx_ptr,
+                 const unsigned char *digital_cert,
+                 size_t digital_cert_size,
+                 crl_t *crl);
+
+#ifdef __cplusplus
+}  // extern &quot;C&quot;
+#endif
+
+#endif  // CRL_H
 </string>
       </property>
      </widget>
