@@ -10,23 +10,24 @@ class MainWindow;
 class MainWindow : public QMainWindow {
   Q_OBJECT
 
- public:
+public:
   enum ProgramMode { kSort, kFixHeaderGuards, kSortC };
-
   explicit MainWindow(QWidget *parent = 0);
-  QString ReorderTextFromString(const QString &text_section);
   ~MainWindow();
- public slots:
-  void ReorderText();
-  void SelectSourceFolder();
-  void SelectDestinationFolder();
+  QString ReorderTextFromString(const QString &text_section);
+
+public slots:
   void ReorderAllTextInFolder();
+  void ReorderText();
+  void SelectDestinationFolder();
+  void SelectSourceFolder();
   void SetMode(int);
 
- private:
+private:
   static QString CleanString(const QString &string);
 
-  ProgramMode mode_ = kSort;
   Ui::MainWindow *ui;
+
+  ProgramMode mode_ = kSort;
 };
-#endif  // MAINWINDOW_H
+#endif // MAINWINDOW_H

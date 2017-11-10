@@ -210,3 +210,9 @@ bool PureCBreaker::SortingForPureC(const QString &left_method,
 int PureCBreaker::MethodParamsAmount(const QString &method) {
   return method.count(",");
 }
+
+QStringList PureCBreaker::ExtractStructsFromCode(QString &code_block) {
+  int struct_token_position = code_block.indexOf("struct");
+  while (struct_token_position != -1) {
+  }
+}

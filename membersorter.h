@@ -9,11 +9,12 @@
 class QStringList;
 
 class MemberSorter : public Sorter {
- public:
+
+public:
   MemberSorter();
   QString SortMembers(QStringList &split_section);
 
- private:
+private:
   enum MemberTypes {
     kReferences,
     kReferenceWrappers,
@@ -23,7 +24,7 @@ class MemberSorter : public Sorter {
     kSmartPointers,
     kSmartPointersContainers,
     kValues,
-    kContainersUsedLikeValues,  // Strings and whatnot
+    kContainersUsedLikeValues, // Strings and whatnot
     kValueContainers,
     kFunctionalObjects,
     kFunctionalObjectsContainers
@@ -31,15 +32,12 @@ class MemberSorter : public Sorter {
 
   static bool SortingForMembers(const QString &left_member,
                                 const QString &right_member);
-
   QString AssembleSortedString();
   void AddStringIntoListOfLists(int list_index, const QString &string);
   void PlaceMembersIntoGroups(const QStringList &members);
   void SortMembersInGroups();
-
   static const int kMemberGroupsAmount = 13;
-
   QVector<QStringList> member_groups_;
 };
 
-#endif  // MEMBERSORTER_H
+#endif // MEMBERSORTER_H

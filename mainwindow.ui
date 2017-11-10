@@ -18,7 +18,7 @@
     <item row="0" column="0">
      <widget class="QComboBox" name="mode_combo">
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <item>
        <property name="text">
@@ -96,42 +96,27 @@
     <item row="1" column="0" colspan="4">
      <widget class="QPlainTextEdit" name="segment_text_edit">
       <property name="plainText">
-       <string>#ifndef ASNBASE_H
-#define ASNBASE_H
+       <string>#ifndef GENERATEDMASKFROMKEYNOTE_H
+#define GENERATEDMASKFROMKEYNOTE_H
 
-#include &lt;stdio.h&gt;
+#include &lt;generatedmaskprovider.h&gt;
 
-#include &lt;asnprim.h&gt;
-#include &lt;trace.h&gt;
+#include &lt;functional&gt;
 
-#ifdef __cplusplus
-extern &quot;C&quot; {
-#endif
+class GeneratedMaskFromKeynote : public GeneratedMaskProvider {
+ public:
+  using RandomProvider = std::function&lt;void(int, QByteArray&amp;)&gt;;
 
-#define TEMPORAL_PATH_STRING_SIZE 255
-#define TEMPORAL_DATE_STRING_SIZE 30
+  explicit GeneratedMaskFromKeynote(RandomProvider random_provider);
+  ~GeneratedMaskFromKeynote() noexcept override;
 
-#define SIZE_OF_BYTE 8
+ private:
+  QByteArray GenerateMaskBySize(quint32 mask_size) override;
 
-int number_can_be_stored_in_int(unsigned long number);
-void invert_array_if_little_endian(unsigned char *array, size_t size);
+  RandomProvider provide_random_;
+};
 
-#define convert_array_to_big_endian(array, size) \
-  invert_array_if_little_endian(array, size)
-
-#define convert_array_from_big_endian(array, size) \
-  invert_array_if_little_endian(array, size)
-
-int copy_buff_t(buff_t *dst, buff_t *src);
-buff_t fill_copy_of_buff_t(buff_t source);
-buff_t *create_copy_of_buff_t(buff_t *source);
-void ReverseArray(unsigned char *array, size_t size);
-
-#ifdef __cplusplus
-} /* extern &quot;C&quot; { */
-#endif
-
-#endif  // ASNBASE_H
+#endif  // GENERATEDMASKFROMKEYNOTE_H
 </string>
       </property>
      </widget>

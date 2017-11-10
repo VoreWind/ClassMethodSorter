@@ -34,7 +34,8 @@ SOURCES += main.cpp\
     headerguardfixer.cpp \
     purecbreaker.cpp
 
-QMAKE_CXXFLAGS += -std=c++11
+QMAKE_CXXFLAGS += -std=c++11 --coverage
+QMAKE_LFLAGS += --coverage
 
 HEADERS  += mainwindow.h \
     classbreaker.h \

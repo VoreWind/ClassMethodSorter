@@ -6,15 +6,19 @@
 #include <QVector>
 
 struct ParsedClass {
+
   bool is_public_section_shown = true;
-  QString class_name;
+
   QString class_header;
+  QString class_name;
   QVector<QString> split_class_body;
+
   QList<ParsedClass> inner_classes;
 };
 
 class ClassBreaker {
- public:
+
+public:
   enum Sections {
     kPublic,
     kSignals,
@@ -24,32 +28,34 @@ class ClassBreaker {
     kPrivateSlots,
     kPrivate
   };
+  static QList<ParsedClass> FindClassBlocksInString(QString &block);
+  static int FindClassTokenPosition(const QString &block);
+  static void SortClassSections(ParsedClass &parsed_class);
 
-  static QList<ParsedClass> FindClassBlocksInString(QString& block);
   static QString AssembleClassBack(ParsedClass parsed_class,
-                                   QString& initial_string);
-  static void SortClassSections(ParsedClass& parsed_class);
+                                   QString &initial_string);
 
-  static int FindClassTokenPosition(const QString& block);
-
- private:
-  static QList<int> BuildSectionPositionList(const QString& class_block);
-  static QString FindClassName(const QString& block, int token_position);
+private:
+  static QList<int> BuildSectionPositionList(const QString &class_block);
   static QRegExp SectionFinderRegExp();
-  static QVector<QString> SplitClassBlockToSections(const QString& class_block);
-  static QString FindClassHeader(const QString& block, int token_position);
-  static QString FindStructHeader(const QString& block, int token_position);
-  static QString FindHeader(const QString& block, int token_position);
-  static bool IsClassBlockStatringWithSectionToken(const QString& block);
-  static bool DoesBlockContainUnparseableCode(QString& block);
-  static QString AssembleBlockFromSections(QVector<QString> sections,
-                                           bool is_public_section_shown = true);
-  static QString CleanClassFromMacros(const QString& class_string);
-  static QString InsertSectionToClass(const QString& class_string,
+  static QString CleanClassFromMacros(const QString &class_string);
+  static QString FindClassHeader(const QString &block, int token_position);
+  static QString FindClassName(const QString &block, int token_position);
+  static QString FindHeader(const QString &block, int token_position);
+  static QString FindStructHeader(const QString &block, int token_position);
+  static QVector<QString> SplitClassBlockToSections(const QString &class_block);
+  static bool DoesBlockContainUnparseableCode(QString &block);
+  static bool IsClassBlockStatringWithSectionToken(const QString &block);
+
+  static QString InsertSectionToClass(const QString &class_string,
                                       bool is_class);
 
-  static const QStringList kSectionNames;
+  static QString AssembleBlockFromSections(QVector<QString> sections,
+                                           bool is_public_section_shown = true);
+
   static const int kSectionsAmount = 7;
+
+  static const QStringList kSectionNames;
 };
 
-#endif  // CLASSBREAKER_H
+#endif // CLASSBREAKER_H

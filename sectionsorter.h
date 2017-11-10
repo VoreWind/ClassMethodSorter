@@ -10,11 +10,12 @@ class QString;
 class QStringList;
 
 class SectionSorter : public Sorter {
- public:
+
+public:
   SectionSorter(QString class_name);
   QString SortSection(QString &section);
 
- private:
+private:
   enum Blocks {
     kUsingDirectives,
     kTypedefs,
@@ -42,21 +43,18 @@ class SectionSorter : public Sorter {
     kFriendOperators,
     kFriendMethods,
   };
-
   static int MethodParamsAmount(const QString &method);
 
   static bool SortingForMethods(const QString &left_method,
                                 const QString &right_method);
-
   QString AssembleSortedString();
   void AddStringIntoListOfLists(int list_index, const QString &string);
   void PlaceMethodsIntoGroups(const QStringList &methods);
   void SortMethodsInGroups();
-
   static const int kMethodGroupsAmount = 23;
 
-  QVector<QStringList> method_groups_;
   QString class_name_;
+  QVector<QStringList> method_groups_;
 };
 
-#endif  // SECTIONSORTER_H
+#endif // SECTIONSORTER_H

@@ -6,15 +6,16 @@
 
 class QStringList;
 class Sorter {
- public:
-  Sorter();
-  static int ElementStringAmount(const QString &element);
+
+public:
   static QString TruncateCommentsFromElement(const QString &element);
   static QStringList SplitSectionIntoElements(const QString &code_section);
+  static int ElementStringAmount(const QString &element);
 
   static QString CleanString(const QString &string,
                              const QString &clutter_token = "\n\n\n",
                              const QString &clered_token = "\n\n");
+  Sorter();
 };
 
-#endif  // SORTER_H
+#endif // SORTER_H

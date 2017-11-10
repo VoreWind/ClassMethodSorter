@@ -106,6 +106,10 @@ QString SectionSorter::AssembleSortedString() {
 void SectionSorter::PlaceMethodsIntoGroups(const QStringList &methods) {
   for (auto method : methods) {
     auto clean_method = TruncateCommentsFromElement(method);
+    if (clean_method.contains("using ", Qt::CaseSensitive)) {
+      AddStringIntoListOfLists(kUsingDirectives, method);
+      continue;
+    }
     if (clean_method.contains("friend")) {
       if (clean_method.contains("operator ")) {
         AddStringIntoListOfLists(kFriendOperators, method);
@@ -163,11 +167,7 @@ void SectionSorter::PlaceMethodsIntoGroups(const QStringList &methods) {
         continue;
       }
     } else  // Non-methods
-        if (clean_method.contains("using ", Qt::CaseSensitive)) {
-      AddStringIntoListOfLists(kUsingDirectives, method);
-      continue;
-    }
-    if (clean_method.contains("typedef ", Qt::CaseSensitive)) {
+        if (clean_method.contains("typedef ", Qt::CaseSensitive)) {
       AddStringIntoListOfLists(kTypedefs, method);
       continue;
     }

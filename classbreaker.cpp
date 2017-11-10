@@ -139,11 +139,7 @@ bool ClassBreaker::DoesBlockContainUnparseableCode(QString& block) {
 }
 
 QRegExp ClassBreaker::SectionFinderRegExp() {
-  QString regexp_string;
-  for (auto section : kSectionNames) {
-    regexp_string.append(section + "|");
-  }
-  regexp_string.chop(1);
+  QString regexp_string = kSectionNames.join("|");
   return QRegExp(regexp_string);
 }
 

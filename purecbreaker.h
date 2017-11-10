@@ -4,11 +4,12 @@
 #include <QString>
 
 class PureCBreaker {
- public:
+
+public:
   static QString FindRelevantCode(QString &header_code);
   static QString SortHeader(const QString &header_code);
 
- private:
+private:
   enum Blocks {
     kMacros,
     kDefineCostants,
@@ -24,21 +25,25 @@ class PureCBreaker {
     kNonConstantMembers,
     kConstantMembers,
   };
-  static const int kBlocksAmount = 12;
-
-  static void AddStringIntoListOfLists(int list_index, const QString &string,
-                                       QVector<QStringList> &groups);
+  static QStringList ExtractStructsFromCode(QString &code_block);
   static QStringList RemoveMacrosFromCode(QString &relevant_code);
   static QStringList RemoveStructuresFromCode(QString &relevant_code);
   static QStringList SplitCodeToMethods(QString &relevant_code);
-  static QVector<QStringList> PlaceMethodsIntoGroups(
-      const QStringList &macros, const QStringList &methods);
+  static int MethodParamsAmount(const QString &method);
   static void SortGroups(QVector<QStringList> &groups);
-  static void AssembleHeaderBack(QString &header_code,
-                                 QVector<QStringList> groups);
+
   static bool SortingForPureC(const QString &left_method,
                               const QString &right_method);
-  static int MethodParamsAmount(const QString &method);
+
+  static void AssembleHeaderBack(QString &header_code,
+                                 QVector<QStringList> groups);
+
+  static QVector<QStringList>
+  PlaceMethodsIntoGroups(const QStringList &macros, const QStringList &methods);
+
+  static void AddStringIntoListOfLists(int list_index, const QString &string,
+                                       QVector<QStringList> &groups);
+  static const int kBlocksAmount = 12;
 };
 
-#endif  // PURECBREAKER_H
+#endif // PURECBREAKER_H
