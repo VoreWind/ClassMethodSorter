@@ -118,7 +118,7 @@ QString ClassBreaker::FindClassName(const QString& block, int token_position) {
 QString ClassBreaker::FindClassHeader(const QString& block,
                                       int token_position) {
   QRegExp section_regexp = SectionFinderRegExp();
-  int section_position = block.indexOf(section_regexp);
+  int section_position = block.indexOf(section_regexp, token_position);
   return block.mid(token_position, section_position - token_position);
 }
 
