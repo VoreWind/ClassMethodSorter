@@ -35,12 +35,13 @@ QString PureCBreaker::SortHeader(const QString &header_code) {
       FindLowestIncludeInIrrelevantCode(non_const_header_code);
 
   non_const_header_code.insert(include_insertion_position,
-                               "\n" + includes_list.join("\n") + "\n");
+                               includes_list.join("\n"));
 
   QVector<QStringList> groups;
   groups.resize(kBlocksAmount);
 
   ExtractMacrosFromCode(relevant_code, groups);
+  ExtractIfdefMacrosFromCode(relevant_code, groups);
   ExtractStructuresFromCode(relevant_code, groups);
 
   QStringList methods = SplitCodeToMethods(relevant_code);
@@ -115,6 +116,21 @@ PureCBreaker::PopulateAssistant() {
   assistant.insert(kOtherVariables, *IsBlockOtherVariable);
   assistant.insert(kTypedefs, *IsBlockTypedef);
   return assistant;
+}
+
+void PureCBreaker::ExtractIfdefMacrosFromCode(QString &relevant_code,
+                                              QVector<QStringList> &groups) {
+  QRegExp ifdef_regexp("#ifn?def[\\w\\s]+\n#[define|undef][\\w\\s]+\n#endif");
+  ifdef_regexp.setMinimal(true);
+
+  int ifdef_index = ifdef_regexp.indexIn(relevant_code);
+  while (ifdef_index != -1) {
+    QString macro = ifdef_regexp.cap(0);
+    qDebug() << macro;
+    AddStringIntoListOfLists(kDefineCostants, macro, groups);
+    relevant_code.remove(macro);
+    ifdef_index = ifdef_regexp.indexIn(relevant_code);
+  }
 }
 
 void PureCBreaker::ExtractMacrosFromCode(QString &relevant_code,
@@ -206,7 +222,7 @@ void PureCBreaker::AssembleHeaderBack(QString &header_code,
   QString parsed_code;
   for (auto group : groups) {
     for (auto element : group) {
-      parsed_code.append(element + ";\n");
+      parsed_code.append(element + ";");
     }
 
     if (!group.isEmpty()) {

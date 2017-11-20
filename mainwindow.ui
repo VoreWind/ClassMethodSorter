@@ -115,6 +115,11 @@ extern &quot;C&quot; {
 
 #include &quot;trace.h&quot;
 
+
+#ifndef _BSD_SOURCE
+#define _BSD_SOURCE 1
+#endif
+
 /// Структура списка отозванных сертификатов.
 typedef struct {
   unsigned char *serial;     // Серийный номер

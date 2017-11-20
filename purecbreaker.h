@@ -38,6 +38,8 @@ class PureCBreaker {
   static int FindLowestIncludeInIrrelevantCode(const QString &irrelevant_code);
 
   static QMap<Blocks, bool (*)(const QString &)> PopulateAssistant();
+  static void ExtractIfdefMacrosFromCode(QString &relevant_code,
+                                         QVector<QStringList> &groups);
   static void ExtractMacrosFromCode(QString &relevant_code,
                                     QVector<QStringList> &groups);
   static void ExtractStructuresFromCode(QString &relevant_code,
