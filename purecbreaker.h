@@ -34,6 +34,9 @@ class PureCBreaker {
   static bool IsBlockOtherVariable(const QString &block);
   static bool IsBlockTypedef(const QString &block);
 
+  static QStringList ExtractIncludesFromRelevantCode(QString &relevant_code);
+  static int FindLowestIncludeInIrrelevantCode(const QString &irrelevant_code);
+
   static QMap<Blocks, bool (*)(const QString &)> PopulateAssistant();
   static void ExtractMacrosFromCode(QString &relevant_code,
                                     QVector<QStringList> &groups);

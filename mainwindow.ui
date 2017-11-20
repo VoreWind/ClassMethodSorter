@@ -111,7 +111,6 @@
 extern &quot;C&quot; {
 #endif
 
-//#include &lt;def.h&gt;
 #include &lt;time.h&gt;
 
 #include &quot;trace.h&quot;

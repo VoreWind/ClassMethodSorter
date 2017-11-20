@@ -30,6 +30,13 @@ QString PureCBreaker::FindRelevantCode(QString &header_code) {
 QString PureCBreaker::SortHeader(const QString &header_code) {
   QString non_const_header_code = header_code;
   QString relevant_code = FindRelevantCode(non_const_header_code).trimmed();
+  QStringList includes_list = ExtractIncludesFromRelevantCode(relevant_code);
+  int include_insertion_position =
+      FindLowestIncludeInIrrelevantCode(non_const_header_code);
+
+  non_const_header_code.insert(include_insertion_position,
+                               "\n" + includes_list.join("\n") + "\n");
+
   QVector<QStringList> groups;
   groups.resize(kBlocksAmount);
 
@@ -69,6 +76,33 @@ bool PureCBreaker::IsBlockOtherVariable(const QString &block) {
 bool PureCBreaker::IsBlockTypedef(const QString &block) {
   return !block.contains(" struct ") && !block.contains(" enum ") &&
          block.contains(" typedef ");
+}
+
+QStringList PureCBreaker::ExtractIncludesFromRelevantCode(
+    QString &relevant_code) {
+  QRegExp include_regexp("#include [<\"].*[>\"]");
+  include_regexp.setMinimal(true);
+  QStringList include_list;
+
+  while ((include_regexp.indexIn(relevant_code, 0)) != -1) {
+    include_list << include_regexp.cap(0);
+    relevant_code.remove(include_regexp.cap(0));
+  }
+
+  return include_list;
+}
+
+int PureCBreaker::FindLowestIncludeInIrrelevantCode(
+    const QString &irrelevant_code) {
+  QRegExp include_insertion_regexp("#include [<\"].*[>\"]");
+  include_insertion_regexp.setMinimal(true);
+  int last_position = include_insertion_regexp.lastIndexIn(irrelevant_code);
+  if (last_position == -1) {
+    include_insertion_regexp.setPattern("#define [A-Z_]+\n");
+    last_position = include_insertion_regexp.indexIn(irrelevant_code);
+  }
+  last_position += include_insertion_regexp.cap(0).count();
+  return last_position;
 }
 
 QMap<PureCBreaker::Blocks, bool (*)(const QString &)>
