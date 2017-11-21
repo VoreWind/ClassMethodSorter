@@ -40,8 +40,8 @@ QString PureCBreaker::SortHeader(const QString &header_code) {
   QVector<QStringList> groups;
   groups.resize(kBlocksAmount);
 
-  ExtractMacrosFromCode(relevant_code, groups);
   ExtractIfdefMacrosFromCode(relevant_code, groups);
+  ExtractMacrosFromCode(relevant_code, groups);
   ExtractStructuresFromCode(relevant_code, groups);
 
   QStringList methods = SplitCodeToMethods(relevant_code);
@@ -126,7 +126,6 @@ void PureCBreaker::ExtractIfdefMacrosFromCode(QString &relevant_code,
   int ifdef_index = ifdef_regexp.indexIn(relevant_code);
   while (ifdef_index != -1) {
     QString macro = ifdef_regexp.cap(0);
-    qDebug() << macro;
     AddStringIntoListOfLists(kDefineCostants, macro, groups);
     relevant_code.remove(macro);
     ifdef_index = ifdef_regexp.indexIn(relevant_code);
@@ -177,9 +176,10 @@ void PureCBreaker::ExtractStructuresFromCode(QString &relevant_code,
     int semicolon_position = relevant_code.indexOf(";", close_brace_position);
     struct_block = relevant_code.mid(starter_index,
                                      semicolon_position - starter_index + 1);
-    AddStringIntoListOfLists(kTypedefStructs, struct_block, groups);
     relevant_code.remove(struct_block);
+    struct_block.chop(1);
     starter_index = relevant_code.indexOf(typedef_struct_starter);
+    AddStringIntoListOfLists(kTypedefStructs, struct_block, groups);
   }
 }
 
@@ -220,15 +220,16 @@ void PureCBreaker::SortGroups(QVector<QStringList> &groups) {
 void PureCBreaker::AssembleHeaderBack(QString &header_code,
                                       QVector<QStringList> groups) {
   QString parsed_code;
+  QStringList parsed_groups;
   for (auto group : groups) {
-    for (auto element : group) {
-      parsed_code.append(element + ";");
-    }
-
-    if (!group.isEmpty()) {
-      parsed_code.append("\n");
+    QString parsed_group = group.join(";");
+    if (!parsed_group.isEmpty()) {
+      parsed_groups << parsed_group;
     }
   }
+
+  parsed_code = parsed_groups.join("\n");
+
   header_code.replace("##relevant_code##", parsed_code);
 }
 

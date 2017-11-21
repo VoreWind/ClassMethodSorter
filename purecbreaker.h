@@ -13,6 +13,7 @@ class PureCBreaker {
   enum Blocks {
     kIncludes,
     kExternC,
+    kUnsortableDefines,
     kMacros,
     kDefineCostants,
     kTypedefs,
@@ -25,8 +26,6 @@ class PureCBreaker {
     kOtherVariables
   };
 
-  static bool IsBlockMacro(const QString &block);
-  static bool IsBlockDefinedConstant(const QString &block);
   static bool IsBlockTypedefEnum(const QString &block);
   static bool IsBlockEnum(const QString &block);
   static bool IsBlockFunction(const QString &block);
@@ -38,6 +37,7 @@ class PureCBreaker {
   static int FindLowestIncludeInIrrelevantCode(const QString &irrelevant_code);
 
   static QMap<Blocks, bool (*)(const QString &)> PopulateAssistant();
+
   static void ExtractIfdefMacrosFromCode(QString &relevant_code,
                                          QVector<QStringList> &groups);
   static void ExtractMacrosFromCode(QString &relevant_code,
