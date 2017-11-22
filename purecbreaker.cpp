@@ -227,14 +227,24 @@ void PureCBreaker::SortGroups(QVector<QStringList> &groups) {
 QString PureCBreaker::AssembleHeaderBack(QVector<QStringList> groups) {
   QString parsed_code;
   QStringList parsed_groups;
-  for (auto group : groups) {
-    QString parsed_group = group.join(";\n");
+  for (const auto &group : groups) {
+    QString parsed_group;
+    for (const auto &element : group) {
+      if (!element.isEmpty()) {
+        parsed_group.append(element + ";\n");
+        if (element.count("\n") != 0) {
+          parsed_group.append("\n");
+        }
+      }
+    }
+
     if (!parsed_group.isEmpty()) {
+      parsed_group = parsed_group.trimmed();
       parsed_groups << parsed_group;
     }
   }
 
-  parsed_code = parsed_groups.join("\n\n");
+  parsed_code = parsed_groups.join("\n");
 
   return parsed_code;
 }
