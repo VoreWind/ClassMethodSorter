@@ -9,24 +9,6 @@
 const QMap<PureCBreaker::Blocks, bool (*)(const QString &)>
     PureCBreaker::kSortingAssistant = PopulateAssistant();
 
-QString PureCBreaker::FindRelevantCode(QString &header_code) {
-  const QString opening_tag = "#ifdef __cplusplus\nextern \"C\" {\n#endif\n";
-  const QString closing_tag = "\n#ifdef __cplusplus\n}";
-
-  int opening_tag_position =
-      header_code.indexOf(opening_tag) + opening_tag.count();
-  int closing_tag_position = header_code.indexOf(closing_tag);
-
-  if (opening_tag_position == -1 || closing_tag_position == -1) {
-    return "";
-  } else {
-    QString relevant_code = header_code.mid(
-        opening_tag_position, closing_tag_position - opening_tag_position);
-    header_code.replace(relevant_code, "##relevant_code##");
-    return relevant_code;
-  }
-}
-
 QString PureCBreaker::SortHeader(const QString &header_code) {
   QString relevant_code = header_code;
   QString unsortable_bottom = ExtractUnsortableBottomFromCode(relevant_code);
@@ -114,34 +96,40 @@ QStringList PureCBreaker::ExtractUnsortableTopFromCode(QString &code) {
     if (clean_line.isEmpty()) {
       if (insert_empty_lines) {
         unsortable_list << code_line;
+        insert_empty_lines = false;
         continue;
       }
     }
 
     if (clean_line.startsWith("#include")) {
+      insert_empty_lines = true;
       unsortable_list << code_line;
       continue;
     }
 
     if (clean_line.startsWith("#if")) {
       if_counter++;
+      insert_empty_lines = true;
       unsortable_list << code_line;
       continue;
     }
 
     if (clean_line.startsWith("#endif")) {
       if_counter--;
+      insert_empty_lines = true;
       unsortable_list << code_line;
       continue;
     }
 
     if (if_counter > 0) {
       unsortable_list << code_line;
+      insert_empty_lines = true;
       continue;
     }
 
     if (clean_line.startsWith("#define") || clean_line.endsWith("\\")) {
       unsortable_list << code_line;
+      insert_empty_lines = true;
       continue;
     }
   }

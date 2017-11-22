@@ -6,7 +6,6 @@
 
 class PureCBreaker {
  public:
-  static QString FindRelevantCode(QString &header_code);
   static QString SortHeader(const QString &header_code);
 
  private:
@@ -32,7 +31,6 @@ class PureCBreaker {
   static QString ExtractUnsortableBottomFromCode(QString &code);
   static QString ExtractExternCBlockFromCode(QString &code);
   static QStringList ExtractUnsortableTopFromCode(QString &code);
-  static int FindLowestIncludeInIrrelevantCode(const QString &irrelevant_code);
   static void RemoveSingleLineFromCode(QString &code, const QString &line);
   static QMap<Blocks, bool (*)(const QString &)> PopulateAssistant();
 
