@@ -29,6 +29,7 @@ QString PureCBreaker::FindRelevantCode(QString &header_code) {
 
 QString PureCBreaker::SortHeader(const QString &header_code) {
   QString non_const_header_code = header_code;
+  ExtractUnsortableCodeFromCode(non_const_header_code);
   QString relevant_code = FindRelevantCode(non_const_header_code).trimmed();
   QStringList includes_list = ExtractIncludesFromRelevantCode(relevant_code);
   int include_insertion_position =
@@ -93,6 +94,45 @@ QStringList PureCBreaker::ExtractIncludesFromRelevantCode(
   return include_list;
 }
 
+QStringList PureCBreaker::ExtractUnsortableCodeFromCode(QString &code) {
+  QStringList code_lines = code.split("\n");
+  QStringList unsortable_list;
+  unsortable_list << code_lines.at(0) << code_lines.at(1);
+  code_lines.pop_front();
+  code_lines.pop_front();
+
+  int if_counter = 0;
+  for (const auto &code_line : code_lines) {
+    QString clean_line = code_line.trimmed();
+    if (clean_line.startsWith("#include")) {
+      unsortable_list << code_line;
+      continue;
+    }
+
+    if (clean_line.startsWith("#if")) {
+      if_counter++;
+      unsortable_list << code_line;
+      continue;
+    }
+    if (clean_line.startsWith("#endif")) {
+      if_counter--;
+      unsortable_list << code_line;
+      continue;
+    }
+    if (if_counter > 0) {
+      unsortable_list << code_line;
+      continue;
+    }
+
+    if (clean_line.startsWith("#define") || clean_line.endsWith("\\")) {
+      unsortable_list << code_line;
+      continue;
+    }
+  }
+  qDebug().noquote() << unsortable_list.join("\n");
+  return unsortable_list;
+}
+
 int PureCBreaker::FindLowestIncludeInIrrelevantCode(
     const QString &irrelevant_code) {
   QRegExp include_insertion_regexp("#include [<\"].*[>\"]");
@@ -120,16 +160,17 @@ PureCBreaker::PopulateAssistant() {
 
 void PureCBreaker::ExtractIfdefMacrosFromCode(QString &relevant_code,
                                               QVector<QStringList> &groups) {
-  QRegExp ifdef_regexp("#ifn?def[\\w\\s]+\n#[define|undef][\\w\\s]+\n#endif");
-  ifdef_regexp.setMinimal(true);
+  //  QRegExp
+  //  ifdef_regexp("#ifn?def[\\w\\s]+\n#[define|undef][\\w\\s]+\n#endif");
+  //  ifdef_regexp.setMinimal(true);
 
-  int ifdef_index = ifdef_regexp.indexIn(relevant_code);
-  while (ifdef_index != -1) {
-    QString macro = ifdef_regexp.cap(0);
-    AddStringIntoListOfLists(kDefineCostants, macro, groups);
-    relevant_code.remove(macro);
-    ifdef_index = ifdef_regexp.indexIn(relevant_code);
-  }
+  //  int ifdef_index = ifdef_regexp.indexIn(relevant_code);
+  //  while (ifdef_index != -1) {
+  //    QString macro = ifdef_regexp.cap(0);
+  //    AddStringIntoListOfLists(kDefineCostants, macro, groups);
+  //    relevant_code.remove(macro);
+  //    ifdef_index = ifdef_regexp.indexIn(relevant_code);
+  //}
 }
 
 void PureCBreaker::ExtractMacrosFromCode(QString &relevant_code,
@@ -150,16 +191,6 @@ void PureCBreaker::ExtractMacrosFromCode(QString &relevant_code,
 
     relevant_code.remove(macro);
     macro_index = relevant_code.indexOf(define_starter);
-  }
-
-  for (auto macro : macros) {
-    if (macro.contains("(")) {
-      AddStringIntoListOfLists(kMacros, macro, groups);
-      continue;
-    } else {
-      AddStringIntoListOfLists(kDefineCostants, macro, groups);
-      continue;
-    }
   }
 }
 
