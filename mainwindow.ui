@@ -115,11 +115,6 @@ extern &quot;C&quot; {
 
 #include &quot;trace.h&quot;
 
-
-#ifndef _BSD_SOURCE
-#define _BSD_SOURCE 1
-#endif
-
 /// Структура списка отозванных сертификатов.
 typedef struct {
   unsigned char *serial;     // Серийный номер
@@ -129,7 +124,7 @@ typedef struct {
   unsigned long cert_reason;  // Причина отзыва для сертфиката
 } rev_cert_t;
 
-/// Структура СОС.
+///  Структура СОС.
 typedef struct {
   unsigned long version;  // Версия
 
@@ -161,35 +156,35 @@ typedef struct {
 
 } crl_t;
 
-/// \param   *crl_exts структура расширений СОС.
-/// \brief   Очищает структуру списка отозванных сертификатов.
+/*!\param   *crl_exts структура расширений СОС
+ * \brief   Очищает структуру списка отозванных сертификатов */
 void free_crl_ext(cert_ext_t *crl_exts);
 
-/// \param   *rev_cert структура списка отозванных сертификатов.
-/// \brief   Очищает структуру списка отозванных сертификатов.
+/*!\param   *rev_cert структура списка отозванных сертификатов
+ * \brief   Очищает структуру списка отозванных сертификатов */
 void free_rev_cert(rev_cert_t *rev_cert);
 
-/// \param   *crl структура списка отозванных сертификатов.
-/// \brief   Очищает структуру списка отозванных сертификатов.
+/*!\param   *crl структура списка отозванных сертификатов
+ * \brief   Очищает структуру списка отозванных сертификатов */
 void free_crl(crl_t *crl);
 
-/// \param   *digital_crl двоичный СОС.
-/// \param   digital_crl_size длина СОС.
-/// \param   *crl структура разобранного СОС.
-/// \return  0 в случае успеха, иначе код ошибки.
-/// \brief   Раскодрует СОС и заполняет структуру СОС.
+/*!\param   *digital_crl двоичный СОС
+ * \param   digital_crl_size длина СОС
+ * \param   *crl структура разобранного СОС
+ * \return  0 в случае успеха, иначе код ошибки
+ * \brief   Раскодрует СОС и заполняет структуру СОС*/
 int parse_crl(const unsigned char *digital_crl,
               size_t digital_crl_size,
               crl_t *crl);
 
-/// \param   *digital_crl двоичный СОС.
-/// \param   digital_crl_size длина СОС.
-/// \param   **signature подпись.
-/// \param   *signature_size длина подписи.
-/// \param   **crl_verify_blob двоичная часть проверяемого СОС.
-/// \param   *crl_verify_blob_size длина части проверяемого СОС.
-/// \return  0 в случае успеха, иначе код ошибки.
-/// \brief   Получает проверяемую часть и подпис СОС.
+/*!\param   *digital_crl двоичный СОС
+ * \param   digital_crl_size длина СОС
+ * \param   **signature подпись
+ * \param   *signature_size длина подписи
+ * \param   **crl_verify_blob двоичная часть проверяемого СОС
+ * \param   *crl_verify_blob_size длина части проверяемого СОС
+ * \return  0 в случае успеха, иначе код ошибки
+ * \brief   Получает проверяемую часть и подпис СОС*/
 int get_tbs_crl(const unsigned char *digial_crl,
                 size_t digital_crl_size,
                 unsigned char **signature,
@@ -197,28 +192,28 @@ int get_tbs_crl(const unsigned char *digial_crl,
                 unsigned char **crl_verify_blob,
                 size_t *crl_verify_blob_size);
 
-/// \param   *digital_cert двоичная часть сертификата.
-/// \param   digital_cert_size длина двоичной части сертификата.
-/// \param   *crl структура СОС.
-/// \param   **tbs_crl_blob двоичная часть СОС.
-/// \param   *tbs_crl_blob_size длина двоичной части СОС.
-/// \return  0 в случае успеха, иначе код ошибки.
-/// \brief   Cоздает подписываемую часть СОС.
+/*!\param   *digital_cert двоичная часть сертификата
+ * \param   digital_cert_size длина двоичной части сертификата
+ * \param   *crl структура СОС
+ * \param   **tbs_crl_blob двоичная часть СОС
+ * \param   *tbs_crl_blob_size длина двоичной части СОС
+ * \return  0 в случае успеха, иначе код ошибки
+ * \brief   Cоздает подписываемую часть СОС*/
 int create_tbs_crl(const unsigned char *digital_cert,
                    size_t digital_cert_size,
                    crl_t *crl,
                    unsigned char **tbs_crl_blob,
                    size_t *tbs_crl_blob_size);
 
-/// \param   *digital_cert двоичная часть сертификата.
-/// \param   digital_cert_size длина двоичной части сертификата.
-/// \param   *crl структура СОС.
-/// \param   *signature подпись.
-/// \param   signature_size длина подписи.
-/// \param   **digital_crl двоичная часть СОС.
-/// \param   *digital_crl_size длина двоичной части СОС.
-/// \return  0 в случае успеха, иначе код ошибки.
-/// \brief   Cоздает СОС с добавлением подписи над TBS базой СОС.
+/*!\param   *digital_cert двоичная часть сертификата
+ * \param   digital_cert_size длина двоичной части сертификата
+ * \param   *crl структура СОС
+ * \param   *signature подпись
+ * \param   signature_size длина подписи
+ * \param   **digital_crl двоичная часть СОС
+ * \param   *digital_crl_size длина двоичной части СОС
+ * \return  0 в случае успеха, иначе код ошибки
+ * \brief   Cоздает СОС с добавлением подписи над TBS базой СОС*/
 int create_crl(const unsigned char *digital_cert,
                size_t digital_cert_size,
                crl_t *crl,
@@ -227,12 +222,12 @@ int create_crl(const unsigned char *digital_cert,
                unsigned char **digital_crl,
                size_t *digital_crl_size);
 
-/// \param   *ctx контекст для АСН структуры.
-/// \param   *digital_cert двоичная часть сертификата.
-/// \param   digital_cert_size длина двоичной части сертификата.
-/// \param   *crl структура СОС.
-/// \return  0 в случае успеха, иначе код ошибки.
-/// \brief   Записывает данные в АСН структуру СОС.
+/*!\param   *ctx контекст для АСН структуры
+ * \param   *digital_cert двоичная часть сертификата
+ * \param   digital_cert_size длина двоичной части сертификата
+ * \param   *crl структура СОС
+ * \return  0 в случае успеха, иначе код ошибки
+ * \brief   Записывает данные в АСН структуру СОС*/
 int make_tbs_crl(void *ctx_ptr,
                  const unsigned char *digital_cert,
                  size_t digital_cert_size,

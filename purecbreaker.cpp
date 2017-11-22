@@ -28,29 +28,23 @@ QString PureCBreaker::FindRelevantCode(QString &header_code) {
 }
 
 QString PureCBreaker::SortHeader(const QString &header_code) {
-  QString non_const_header_code = header_code;
-  ExtractUnsortableCodeFromCode(non_const_header_code);
-  QString relevant_code = FindRelevantCode(non_const_header_code).trimmed();
-  QStringList includes_list = ExtractIncludesFromRelevantCode(relevant_code);
-  int include_insertion_position =
-      FindLowestIncludeInIrrelevantCode(non_const_header_code);
-
-  non_const_header_code.insert(include_insertion_position,
-                               includes_list.join("\n"));
+  QString relevant_code = header_code;
+  QString unsortable_bottom = ExtractUnsortableBottomFromCode(relevant_code);
+  QString extern_c_opener = ExtractExternCBlockFromCode(relevant_code);
+  QString unsortable_top =
+      ExtractUnsortableTopFromCode(relevant_code).join("\n");
 
   QVector<QStringList> groups;
   groups.resize(kBlocksAmount);
 
-  ExtractIfdefMacrosFromCode(relevant_code, groups);
-  ExtractMacrosFromCode(relevant_code, groups);
   ExtractStructuresFromCode(relevant_code, groups);
-
   QStringList methods = SplitCodeToMethods(relevant_code);
   PlaceMethodsIntoGroups(methods, groups);
 
   SortGroups(groups);
-  AssembleHeaderBack(non_const_header_code, groups);
-  return non_const_header_code;
+
+  return unsortable_top + "\n\n" + extern_c_opener + "\n" +
+         AssembleHeaderBack(groups) + "\n\n" + unsortable_bottom;
 }
 
 bool PureCBreaker::IsBlockTypedefEnum(const QString &block) {
@@ -69,32 +63,43 @@ bool PureCBreaker::IsBlockExternVariable(const QString &block) {
   return !block.contains("(") && block.contains(" extern ");
 }
 
+bool PureCBreaker::IsBlockTypedef(const QString &block) {
+  return !block.contains(" struct ") && !block.contains(" enum ") &&
+         block.contains(" typedef ");
+}
+
 bool PureCBreaker::IsBlockOtherVariable(const QString &block) {
   return !block.contains("(") && !block.contains(" extern ") &&
          !block.contains(" struct ") && !block.contains(" enum ") &&
          !block.contains(" typedef ");
 }
 
-bool PureCBreaker::IsBlockTypedef(const QString &block) {
-  return !block.contains(" struct ") && !block.contains(" enum ") &&
-         block.contains(" typedef ");
-}
-
-QStringList PureCBreaker::ExtractIncludesFromRelevantCode(
-    QString &relevant_code) {
-  QRegExp include_regexp("#include [<\"].*[>\"]");
-  include_regexp.setMinimal(true);
-  QStringList include_list;
-
-  while ((include_regexp.indexIn(relevant_code, 0)) != -1) {
-    include_list << include_regexp.cap(0);
-    relevant_code.remove(include_regexp.cap(0));
+QString PureCBreaker::ExtractUnsortableBottomFromCode(QString &code) {
+  QString extern_c_block_beginning = "#ifdef __cplusplus";
+  int block_beginning_index = code.lastIndexOf("#endif");
+  if (code.count(extern_c_block_beginning) == 2) {
+    block_beginning_index = code.lastIndexOf(extern_c_block_beginning);
+  } else {
+    block_beginning_index = code.lastIndexOf("#endif");
   }
-
-  return include_list;
+  int block_length = code.count() - block_beginning_index;
+  QString unsortable_bottom = code.right(block_length);
+  code.chop(block_length);
+  return unsortable_bottom;
 }
 
-QStringList PureCBreaker::ExtractUnsortableCodeFromCode(QString &code) {
+QString PureCBreaker::ExtractExternCBlockFromCode(QString &code) {
+  QString extern_c_block_beginning =
+      "#ifdef __cplusplus\nextern \"C\" {\n#endif";
+  if (code.contains(extern_c_block_beginning)) {
+    code.remove(extern_c_block_beginning);
+    return extern_c_block_beginning;
+  } else {
+    return QString();
+  }
+}
+
+QStringList PureCBreaker::ExtractUnsortableTopFromCode(QString &code) {
   QStringList code_lines = code.split("\n");
   QStringList unsortable_list;
   unsortable_list << code_lines.at(0) << code_lines.at(1);
@@ -102,8 +107,17 @@ QStringList PureCBreaker::ExtractUnsortableCodeFromCode(QString &code) {
   code_lines.pop_front();
 
   int if_counter = 0;
+  bool insert_empty_lines = false;
+
   for (const auto &code_line : code_lines) {
     QString clean_line = code_line.trimmed();
+    if (clean_line.isEmpty()) {
+      if (insert_empty_lines) {
+        unsortable_list << code_line;
+        continue;
+      }
+    }
+
     if (clean_line.startsWith("#include")) {
       unsortable_list << code_line;
       continue;
@@ -114,11 +128,13 @@ QStringList PureCBreaker::ExtractUnsortableCodeFromCode(QString &code) {
       unsortable_list << code_line;
       continue;
     }
+
     if (clean_line.startsWith("#endif")) {
       if_counter--;
       unsortable_list << code_line;
       continue;
     }
+
     if (if_counter > 0) {
       unsortable_list << code_line;
       continue;
@@ -129,21 +145,17 @@ QStringList PureCBreaker::ExtractUnsortableCodeFromCode(QString &code) {
       continue;
     }
   }
-  qDebug().noquote() << unsortable_list.join("\n");
+
+  for (const auto &unsortable_line : unsortable_list) {
+    RemoveSingleLineFromCode(code, unsortable_line);
+  }
   return unsortable_list;
 }
 
-int PureCBreaker::FindLowestIncludeInIrrelevantCode(
-    const QString &irrelevant_code) {
-  QRegExp include_insertion_regexp("#include [<\"].*[>\"]");
-  include_insertion_regexp.setMinimal(true);
-  int last_position = include_insertion_regexp.lastIndexIn(irrelevant_code);
-  if (last_position == -1) {
-    include_insertion_regexp.setPattern("#define [A-Z_]+\n");
-    last_position = include_insertion_regexp.indexIn(irrelevant_code);
-  }
-  last_position += include_insertion_regexp.cap(0).count();
-  return last_position;
+void PureCBreaker::RemoveSingleLineFromCode(QString &code,
+                                            const QString &line) {
+  QString full_line = line + "\n";
+  code.remove(code.indexOf(full_line), full_line.count());
 }
 
 QMap<PureCBreaker::Blocks, bool (*)(const QString &)>
@@ -156,42 +168,6 @@ PureCBreaker::PopulateAssistant() {
   assistant.insert(kOtherVariables, *IsBlockOtherVariable);
   assistant.insert(kTypedefs, *IsBlockTypedef);
   return assistant;
-}
-
-void PureCBreaker::ExtractIfdefMacrosFromCode(QString &relevant_code,
-                                              QVector<QStringList> &groups) {
-  //  QRegExp
-  //  ifdef_regexp("#ifn?def[\\w\\s]+\n#[define|undef][\\w\\s]+\n#endif");
-  //  ifdef_regexp.setMinimal(true);
-
-  //  int ifdef_index = ifdef_regexp.indexIn(relevant_code);
-  //  while (ifdef_index != -1) {
-  //    QString macro = ifdef_regexp.cap(0);
-  //    AddStringIntoListOfLists(kDefineCostants, macro, groups);
-  //    relevant_code.remove(macro);
-  //    ifdef_index = ifdef_regexp.indexIn(relevant_code);
-  //}
-}
-
-void PureCBreaker::ExtractMacrosFromCode(QString &relevant_code,
-                                         QVector<QStringList> &groups) {
-  const QString define_starter = "#define ";
-  QStringList macros;
-  int macro_index = relevant_code.indexOf(define_starter);
-  while (macro_index != -1) {
-    int line_end_position = relevant_code.indexOf("\n", macro_index);
-    QString macro =
-        relevant_code.mid(macro_index, line_end_position - macro_index);
-
-    while (macro.endsWith("\\")) {
-      line_end_position = relevant_code.indexOf("\n", line_end_position + 1);
-      macro = relevant_code.mid(macro_index, line_end_position - macro_index);
-    }
-    macros.push_back(macro);
-
-    relevant_code.remove(macro);
-    macro_index = relevant_code.indexOf(define_starter);
-  }
 }
 
 void PureCBreaker::ExtractStructuresFromCode(QString &relevant_code,
@@ -248,26 +224,25 @@ void PureCBreaker::SortGroups(QVector<QStringList> &groups) {
   }
 }
 
-void PureCBreaker::AssembleHeaderBack(QString &header_code,
-                                      QVector<QStringList> groups) {
+QString PureCBreaker::AssembleHeaderBack(QVector<QStringList> groups) {
   QString parsed_code;
   QStringList parsed_groups;
   for (auto group : groups) {
-    QString parsed_group = group.join(";");
+    QString parsed_group = group.join(";\n");
     if (!parsed_group.isEmpty()) {
       parsed_groups << parsed_group;
     }
   }
 
-  parsed_code = parsed_groups.join("\n");
+  parsed_code = parsed_groups.join("\n\n");
 
-  header_code.replace("##relevant_code##", parsed_code);
+  return parsed_code;
 }
 
 void PureCBreaker::AddStringIntoListOfLists(int list_index,
                                             const QString &string,
                                             QVector<QStringList> &groups) {
-  groups[list_index].push_back(string);
+  groups[list_index].push_back(string.trimmed());
 }
 
 bool PureCBreaker::SortingForPureC(const QString &left_method,

@@ -10,14 +10,19 @@ int Sorter::ElementStringAmount(const QString &element) {
 }
 
 QString Sorter::TruncateCommentsFromElement(const QString &element) {
-  QStringList split_method = element.split("\n");
+  QRegExp comment_regexp("\\/\\*.*\\*\\/");
+  QString non_const_element = element;
+  non_const_element.remove(comment_regexp);
+  non_const_element = non_const_element.trimmed();
+  QStringList split_method = non_const_element.split("\n");
+
   QString truncated_method;
   for (auto method_line : split_method) {
     if (!method_line.contains(QRegExp("^ *\\/\\/"))) {
       truncated_method += method_line + "\n";
     }
   }
-  return truncated_method;
+  return truncated_method.trimmed();
 }
 
 QStringList Sorter::SplitSectionIntoElements(const QString &code_section) {

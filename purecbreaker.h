@@ -29,16 +29,13 @@ class PureCBreaker {
   static bool IsBlockOtherVariable(const QString &block);
   static bool IsBlockTypedef(const QString &block);
 
-  static QStringList ExtractIncludesFromRelevantCode(QString &relevant_code);
-  static QStringList ExtractUnsortableCodeFromCode(QString &code);
+  static QString ExtractUnsortableBottomFromCode(QString &code);
+  static QString ExtractExternCBlockFromCode(QString &code);
+  static QStringList ExtractUnsortableTopFromCode(QString &code);
   static int FindLowestIncludeInIrrelevantCode(const QString &irrelevant_code);
-
+  static void RemoveSingleLineFromCode(QString &code, const QString &line);
   static QMap<Blocks, bool (*)(const QString &)> PopulateAssistant();
 
-  static void ExtractIfdefMacrosFromCode(QString &relevant_code,
-                                         QVector<QStringList> &groups);
-  static void ExtractMacrosFromCode(QString &relevant_code,
-                                    QVector<QStringList> &groups);
   static void ExtractStructuresFromCode(QString &relevant_code,
                                         QVector<QStringList> &groups);
   static QStringList SplitCodeToMethods(QString &relevant_code);
@@ -48,8 +45,7 @@ class PureCBreaker {
   static bool SortingForPureC(const QString &left_method,
                               const QString &right_method);
 
-  static void AssembleHeaderBack(QString &header_code,
-                                 QVector<QStringList> groups);
+  static QString AssembleHeaderBack(QVector<QStringList> groups);
 
   static void PlaceMethodsIntoGroups(const QStringList &methods,
                                      QVector<QStringList> &groups);
@@ -57,7 +53,7 @@ class PureCBreaker {
   static void AddStringIntoListOfLists(int list_index,
                                        const QString &string,
                                        QVector<QStringList> &groups);
-  static const int kBlocksAmount = 12;
+  static const int kBlocksAmount = 9;
   static const QMap<Blocks, bool (*)(const QString &)> kSortingAssistant;
 
   static int FindCloseCurvyBracePositions(int token_position, QString &block);
