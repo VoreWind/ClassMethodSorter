@@ -20,6 +20,8 @@ QString PureCBreaker::SortHeader(const QString &header_code) {
   groups.resize(kBlocksAmount);
 
   ExtractStructuresFromCode(relevant_code, groups);
+  ExtractUnionsFromCode(relevant_code, groups);
+
   QStringList methods = SplitCodeToMethods(relevant_code);
   PlaceMethodsIntoGroups(methods, groups);
 
@@ -171,21 +173,45 @@ PureCBreaker::PopulateAssistant() {
 
 void PureCBreaker::ExtractStructuresFromCode(QString &relevant_code,
                                              QVector<QStringList> &groups) {
-  QRegExp typedef_struct_starter = QRegExp("(//[^\n]*\n)*typedef struct");
-  typedef_struct_starter.setMinimal(true);
-  int starter_index = relevant_code.indexOf(typedef_struct_starter);
+  ExtractContainerFromCode(relevant_code, groups, "struct", kStructs,
+                           kTypedefStructs);
+}
+
+void PureCBreaker::ExtractUnionsFromCode(QString &relevant_code,
+                                         QVector<QStringList> &groups) {
+  ExtractContainerFromCode(relevant_code, groups, "union", kUnions,
+                           kTypedefUnions);
+}
+
+void PureCBreaker::ExtractContainerFromCode(QString &relevant_code,
+                                            QVector<QStringList> &groups,
+                                            const QString &container_name,
+                                            Blocks container,
+                                            Blocks typedef_container) {
+  QRegExp typedef_container_starter =
+      QRegExp("(\\/\\/[^\n]*\n)*(typedef )?" + container_name);
+  typedef_container_starter.setMinimal(true);
+
+  int starter_index = relevant_code.indexOf(typedef_container_starter);
 
   while (starter_index != -1) {
-    int close_brace_position =
-        FindCloseCurvyBracePositions(starter_index, relevant_code);
-    QString struct_block;
-    int semicolon_position = relevant_code.indexOf(";", close_brace_position);
-    struct_block = relevant_code.mid(starter_index,
-                                     semicolon_position - starter_index + 1);
-    relevant_code.remove(struct_block);
-    struct_block.chop(1);
-    starter_index = relevant_code.indexOf(typedef_struct_starter);
-    AddStringIntoListOfLists(kTypedefStructs, struct_block, groups);
+    int search_token_position = starter_index;
+    if (DoesContainerHaveBraces(starter_index, relevant_code)) {
+      search_token_position =
+          FindCloseCurvyBracePositions(starter_index, relevant_code);
+    }
+    int semicolon_position = relevant_code.indexOf(";", search_token_position);
+    QString container_block = relevant_code.mid(
+        starter_index, semicolon_position - starter_index + 1);
+    relevant_code.remove(container_block);
+    container_block.chop(1);
+    starter_index = relevant_code.indexOf(typedef_container_starter);
+
+    if (container_block.contains("typedef")) {
+      AddStringIntoListOfLists(typedef_container, container_block, groups);
+    } else {
+      AddStringIntoListOfLists(container, container_block, groups);
+    }
   }
 }
 
@@ -332,4 +358,10 @@ int PureCBreaker::FindCloseCurvyBracePositions(int token_position,
   };
 
   return close_curvy_brace_position;
+}
+
+bool PureCBreaker::DoesContainerHaveBraces(int token_position, QString &block) {
+  int open_curvy_brace_position = block.indexOf("{", token_position);
+  int semicolon_position = block.indexOf(";", token_position);
+  return open_curvy_brace_position < semicolon_position;
 }

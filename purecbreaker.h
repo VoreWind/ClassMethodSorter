@@ -16,6 +16,8 @@ class PureCBreaker {
     kEnums,
     kTypedefStructs,
     kStructs,
+    kTypedefUnions,
+    kUnions,
     kFunctions,
     kExternVariables,
     kOtherVariables
@@ -36,6 +38,8 @@ class PureCBreaker {
 
   static void ExtractStructuresFromCode(QString &relevant_code,
                                         QVector<QStringList> &groups);
+  static void ExtractUnionsFromCode(QString &relevant_code,
+                                    QVector<QStringList> &groups);
   static QStringList SplitCodeToMethods(QString &relevant_code);
   static int MethodParamsAmount(const QString &method);
   static void SortGroups(QVector<QStringList> &groups);
@@ -51,10 +55,16 @@ class PureCBreaker {
   static void AddStringIntoListOfLists(int list_index,
                                        const QString &string,
                                        QVector<QStringList> &groups);
-  static const int kBlocksAmount = 9;
+  static const int kBlocksAmount = 11;
   static const QMap<Blocks, bool (*)(const QString &)> kSortingAssistant;
 
   static int FindCloseCurvyBracePositions(int token_position, QString &block);
+  static bool DoesContainerHaveBraces(int token_position, QString &block);
+  static void ExtractContainerFromCode(QString &relevant_code,
+                                       QVector<QStringList> &groups,
+                                       const QString &container_name,
+                                       Blocks container,
+                                       Blocks typedef_container);
 };
 
 #endif  // PURECBREAKER_H
