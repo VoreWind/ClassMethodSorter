@@ -200,7 +200,7 @@ void PureCBreaker::ExtractContainerFromCode(QString &relevant_code,
                                             Blocks container,
                                             Blocks typedef_container) {
   QRegExp typedef_container_starter =
-      QRegExp("(\\/\\/[^\n]*\n)*(typedef )?" + container_name);
+      QRegExp("(\\/\\/[^\n]*\n)*(typedef )?" + container_name + " ");
   typedef_container_starter.setMinimal(true);
 
   int starter_index = relevant_code.indexOf(typedef_container_starter);
