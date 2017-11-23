@@ -51,9 +51,9 @@ bool PureCBreaker::IsBlockTypedef(const QString &block) {
 }
 
 bool PureCBreaker::IsBlockOtherVariable(const QString &block) {
-  return !block.contains("(") && !block.contains(" extern ") &&
-         !block.contains(" struct ") && !block.contains(" enum ") &&
-         !block.contains(" typedef ");
+  return !block.contains("(") && !block.contains("extern ") &&
+         !block.contains("struct ") && !block.contains("enum ") &&
+         !block.contains("typedef ");
 }
 
 QString PureCBreaker::ExtractUnsortableBottomFromCode(QString &code) {
@@ -98,6 +98,8 @@ QStringList PureCBreaker::ExtractUnsortableTopFromCode(QString &code) {
       if (insert_empty_lines) {
         unsortable_list << code_line;
         insert_empty_lines = false;
+        insert_next_line = false;
+
         continue;
       }
     }
