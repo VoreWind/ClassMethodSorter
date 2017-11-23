@@ -241,7 +241,7 @@ QString PureCBreaker::AssembleHeaderBack(QVector<QStringList> groups) {
     }
   }
 
-  parsed_code = parsed_groups.join("\n");
+  parsed_code = parsed_groups.join("\n\n");
 
   return parsed_code;
 }
