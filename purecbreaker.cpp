@@ -25,7 +25,7 @@ QString PureCBreaker::SortHeader(const QString &header_code) {
 
   SortGroups(groups);
 
-  return unsortable_top + "\n\n" + extern_c_opener + "\n" +
+  return unsortable_top + "\n\n" + extern_c_opener + "\n\n" +
          AssembleHeaderBack(groups) + "\n\n" + unsortable_bottom;
 }
 
@@ -90,6 +90,7 @@ QStringList PureCBreaker::ExtractUnsortableTopFromCode(QString &code) {
 
   int if_counter = 0;
   bool insert_empty_lines = false;
+  bool insert_next_line = false;
 
   for (const auto &code_line : code_lines) {
     QString clean_line = code_line.trimmed();
@@ -130,6 +131,14 @@ QStringList PureCBreaker::ExtractUnsortableTopFromCode(QString &code) {
     if (clean_line.startsWith("#define") || clean_line.endsWith("\\")) {
       unsortable_list << code_line;
       insert_empty_lines = true;
+      insert_next_line = true;
+      continue;
+    }
+
+    if (insert_next_line) {
+      unsortable_list << code_line;
+      insert_empty_lines = true;
+      insert_next_line = false;
       continue;
     }
   }
