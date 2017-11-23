@@ -30,11 +30,11 @@ QString PureCBreaker::SortHeader(const QString &header_code) {
 }
 
 bool PureCBreaker::IsBlockTypedefEnum(const QString &block) {
-  return block.contains(" enum ") && block.contains(" typedef ");
+  return block.contains("enum ") && block.contains("typedef ");
 }
 
 bool PureCBreaker::IsBlockEnum(const QString &block) {
-  return block.contains(" enum ") && !block.contains(" typedef ");
+  return block.contains("enum ") && !block.contains("typedef ");
 }
 
 bool PureCBreaker::IsBlockFunction(const QString &block) {
@@ -42,12 +42,12 @@ bool PureCBreaker::IsBlockFunction(const QString &block) {
 }
 
 bool PureCBreaker::IsBlockExternVariable(const QString &block) {
-  return !block.contains("(") && block.contains(" extern ");
+  return !block.contains("(") && block.contains("extern ");
 }
 
 bool PureCBreaker::IsBlockTypedef(const QString &block) {
-  return !block.contains(" struct ") && !block.contains(" enum ") &&
-         block.contains(" typedef ");
+  return !block.contains("struct ") && !block.contains("enum ") &&
+         block.contains("typedef ");
 }
 
 bool PureCBreaker::IsBlockOtherVariable(const QString &block) {
