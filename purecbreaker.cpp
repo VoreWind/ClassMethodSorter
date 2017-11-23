@@ -48,14 +48,14 @@ bool PureCBreaker::IsBlockExternVariable(const QString &block) {
 }
 
 bool PureCBreaker::IsBlockTypedef(const QString &block) {
-  return !block.contains("struct ") && !block.contains("enum ") &&
-         block.contains("typedef ");
+  return !block.contains("struct ") && !block.contains("union ") &&
+         !block.contains("enum ") && block.contains("typedef ");
 }
 
 bool PureCBreaker::IsBlockOtherVariable(const QString &block) {
-  return !block.contains("(") && !block.contains("extern ") &&
-         !block.contains("struct ") && !block.contains("enum ") &&
-         !block.contains("typedef ");
+  return !block.contains("(") && !block.contains("union ") &&
+         !block.contains("extern ") && !block.contains("struct ") &&
+         !block.contains("enum ") && !block.contains("typedef ");
 }
 
 QString PureCBreaker::ExtractUnsortableBottomFromCode(QString &code) {
@@ -183,6 +183,17 @@ void PureCBreaker::ExtractUnionsFromCode(QString &relevant_code,
                            kTypedefUnions);
 }
 
+int PureCBreaker::ContainerBlockEnd(int starter_index, QString &relevant_code) {
+  int search_token_position = starter_index;
+  if (DoesContainerHaveBraces(starter_index, relevant_code)) {
+    search_token_position =
+        FindCloseCurvyBracePositions(starter_index, relevant_code);
+  }
+  int semicolon_position = relevant_code.indexOf(";", search_token_position);
+
+  return semicolon_position;
+}
+
 void PureCBreaker::ExtractContainerFromCode(QString &relevant_code,
                                             QVector<QStringList> &groups,
                                             const QString &container_name,
@@ -195,12 +206,8 @@ void PureCBreaker::ExtractContainerFromCode(QString &relevant_code,
   int starter_index = relevant_code.indexOf(typedef_container_starter);
 
   while (starter_index != -1) {
-    int search_token_position = starter_index;
-    if (DoesContainerHaveBraces(starter_index, relevant_code)) {
-      search_token_position =
-          FindCloseCurvyBracePositions(starter_index, relevant_code);
-    }
-    int semicolon_position = relevant_code.indexOf(";", search_token_position);
+    int semicolon_position = ContainerBlockEnd(starter_index, relevant_code);
+
     QString container_block = relevant_code.mid(
         starter_index, semicolon_position - starter_index + 1);
     relevant_code.remove(container_block);
@@ -237,13 +244,14 @@ void PureCBreaker::PlaceMethodsIntoGroups(const QStringList &methods,
 
 void PureCBreaker::SortGroups(QVector<QStringList> &groups) {
   for (int i = 0; i < kBlocksAmount; ++i) {
-    if (i == kExternVariables) {
+    if (i == kExternVariables || i == kOtherVariables) {
       MemberSorter sorter;
-      QString sorted_string = sorter.SortMembers(groups[i]);
+      QString sorted_string = sorter.SortMembers(groups[i], ";");
       if (!sorted_string.isEmpty()) {
+        sorted_string.chop(1);
         groups[i] = QStringList(sorted_string);
       }
-    } else {
+    } else if (i == kFunctions) {
       std::sort(groups[i].begin(), groups[i].end(), SortingForPureC);
     }
   }

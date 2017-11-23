@@ -5,11 +5,12 @@
 
 MemberSorter::MemberSorter() { member_groups_.resize(kMemberGroupsAmount); }
 
-QString MemberSorter::SortMembers(QStringList &split_section) {
+QString MemberSorter::SortMembers(QStringList &split_section,
+                                  const QString &merge_token) {
   if (split_section.count() != 0) {
     PlaceMembersIntoGroups(split_section);
     SortMembersInGroups();
-    return AssembleSortedString();
+    return AssembleSortedString(merge_token);
   }
   return "";
 }
@@ -48,7 +49,7 @@ bool MemberSorter::SortingForMembers(const QString &left_member,
   return left_truncated_member < right_truncated_member;
 }
 
-QString MemberSorter::AssembleSortedString() {
+QString MemberSorter::AssembleSortedString(const QString &merge_token) {
   QString return_string;
   for (int i = 0; i < kMemberGroupsAmount; ++i) {
     QStringList methods = member_groups_.at(i);
@@ -57,7 +58,9 @@ QString MemberSorter::AssembleSortedString() {
         if (method.count("\n") > 0) {
           method.prepend("\n");
         }
-        return_string += "\n" + method;
+        if (!method.isEmpty()) {
+          return_string += "\n" + method + merge_token;
+        }
       }
       return_string.append("\n");
     }

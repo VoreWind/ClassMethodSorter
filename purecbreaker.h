@@ -65,6 +65,7 @@ class PureCBreaker {
                                        const QString &container_name,
                                        Blocks container,
                                        Blocks typedef_container);
+  static int ContainerBlockEnd(int starter_index, QString &relevant_code);
 };
 
 #endif  // PURECBREAKER_H

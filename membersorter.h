@@ -9,12 +9,12 @@
 class QStringList;
 
 class MemberSorter : public Sorter {
-
-public:
+ public:
   MemberSorter();
-  QString SortMembers(QStringList &split_section);
+  QString SortMembers(QStringList &split_section,
+                      const QString &merge_token = {});
 
-private:
+ private:
   enum MemberTypes {
     kReferences,
     kReferenceWrappers,
@@ -24,7 +24,7 @@ private:
     kSmartPointers,
     kSmartPointersContainers,
     kValues,
-    kContainersUsedLikeValues, // Strings and whatnot
+    kContainersUsedLikeValues,  // Strings and whatnot
     kValueContainers,
     kFunctionalObjects,
     kFunctionalObjectsContainers
@@ -32,7 +32,7 @@ private:
 
   static bool SortingForMembers(const QString &left_member,
                                 const QString &right_member);
-  QString AssembleSortedString();
+  QString AssembleSortedString(const QString &merge_token = {});
   void AddStringIntoListOfLists(int list_index, const QString &string);
   void PlaceMembersIntoGroups(const QStringList &members);
   void SortMembersInGroups();
@@ -40,4 +40,4 @@ private:
   QVector<QStringList> member_groups_;
 };
 
-#endif // MEMBERSORTER_H
+#endif  // MEMBERSORTER_H
