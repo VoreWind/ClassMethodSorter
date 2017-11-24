@@ -16,6 +16,9 @@ QString PureCBreaker::SortHeader(const QString &header_code) {
   QString unsortable_top =
       ExtractUnsortableTopFromCode(relevant_code).join("\n");
 
+  qDebug().noquote() << unsortable_top;
+  qDebug().noquote() << relevant_code;
+
   QVector<QStringList> groups;
   groups.resize(kBlocksAmount);
 
@@ -32,30 +35,43 @@ QString PureCBreaker::SortHeader(const QString &header_code) {
 }
 
 bool PureCBreaker::IsBlockTypedefEnum(const QString &block) {
-  return block.contains("enum ") && block.contains("typedef ");
+  QString truncated_block = Sorter::TruncateCommentsFromElement(block);
+  return truncated_block.contains("enum ") &&
+         truncated_block.contains("typedef ");
 }
 
 bool PureCBreaker::IsBlockEnum(const QString &block) {
-  return block.contains("enum ") && !block.contains("typedef ");
+  QString truncated_block = Sorter::TruncateCommentsFromElement(block);
+  return truncated_block.contains("enum ") &&
+         !truncated_block.contains("typedef ");
 }
 
 bool PureCBreaker::IsBlockFunction(const QString &block) {
-  return block.contains("(");
+  QString truncated_block = Sorter::TruncateCommentsFromElement(block);
+  return truncated_block.contains("(");
 }
 
 bool PureCBreaker::IsBlockExternVariable(const QString &block) {
-  return !block.contains("(") && block.contains("extern ");
+  QString truncated_block = Sorter::TruncateCommentsFromElement(block);
+  return !truncated_block.contains("(") && truncated_block.contains("extern ");
 }
 
 bool PureCBreaker::IsBlockTypedef(const QString &block) {
-  return !block.contains("struct ") && !block.contains("union ") &&
-         !block.contains("enum ") && block.contains("typedef ");
+  QString truncated_block = Sorter::TruncateCommentsFromElement(block);
+  return !truncated_block.contains("struct ") &&
+         !truncated_block.contains("union ") &&
+         !truncated_block.contains("enum ") &&
+         truncated_block.contains("typedef ");
 }
 
 bool PureCBreaker::IsBlockOtherVariable(const QString &block) {
-  return !block.contains("(") && !block.contains("union ") &&
-         !block.contains("extern ") && !block.contains("struct ") &&
-         !block.contains("enum ") && !block.contains("typedef ");
+  QString truncated_block = Sorter::TruncateCommentsFromElement(block);
+  return !truncated_block.contains("(") &&
+         !truncated_block.contains("union ") &&
+         !truncated_block.contains("extern ") &&
+         !truncated_block.contains("struct ") &&
+         !truncated_block.contains("enum ") &&
+         !truncated_block.contains("typedef ") && !truncated_block.isEmpty();
 }
 
 QString PureCBreaker::ExtractUnsortableBottomFromCode(QString &code) {
@@ -86,6 +102,7 @@ QString PureCBreaker::ExtractExternCBlockFromCode(QString &code) {
 QStringList PureCBreaker::ExtractUnsortableTopFromCode(QString &code) {
   QStringList code_lines = code.split("\n");
   QStringList unsortable_list;
+  QStringList possible_comment;
   unsortable_list << code_lines.at(0) << code_lines.at(1);
   code_lines.pop_front();
   code_lines.pop_front();
@@ -96,12 +113,17 @@ QStringList PureCBreaker::ExtractUnsortableTopFromCode(QString &code) {
 
   for (const auto &code_line : code_lines) {
     QString clean_line = code_line.trimmed();
+    if (clean_line.startsWith("//")) {
+      possible_comment << code_line;
+      continue;
+    }
+
     if (clean_line.isEmpty()) {
       if (insert_empty_lines) {
         unsortable_list << code_line;
         insert_empty_lines = false;
         insert_next_line = false;
-
+        possible_comment.clear();
         continue;
       }
     }
@@ -109,33 +131,41 @@ QStringList PureCBreaker::ExtractUnsortableTopFromCode(QString &code) {
     if (clean_line.startsWith("#include")) {
       insert_empty_lines = true;
       unsortable_list << code_line;
+      possible_comment.clear();
       continue;
     }
 
     if (clean_line.startsWith("#if")) {
       if_counter++;
       insert_empty_lines = true;
+      unsortable_list << possible_comment;
       unsortable_list << code_line;
+      possible_comment.clear();
       continue;
     }
 
     if (clean_line.startsWith("#endif")) {
       if_counter--;
       insert_empty_lines = true;
+      unsortable_list << possible_comment;
       unsortable_list << code_line;
+      possible_comment.clear();
       continue;
     }
 
     if (if_counter > 0) {
       unsortable_list << code_line;
       insert_empty_lines = true;
+      possible_comment.clear();
       continue;
     }
 
     if (clean_line.startsWith("#define") || clean_line.endsWith("\\")) {
+      unsortable_list << possible_comment;
       unsortable_list << code_line;
       insert_empty_lines = true;
       insert_next_line = true;
+      possible_comment.clear();
       continue;
     }
 
@@ -143,8 +173,11 @@ QStringList PureCBreaker::ExtractUnsortableTopFromCode(QString &code) {
       unsortable_list << code_line;
       insert_empty_lines = true;
       insert_next_line = false;
+      possible_comment.clear();
       continue;
     }
+
+    possible_comment.clear();
   }
 
   for (const auto &unsortable_line : unsortable_list) {
@@ -223,7 +256,15 @@ void PureCBreaker::ExtractContainerFromCode(QString &relevant_code,
 }
 
 QStringList PureCBreaker::SplitCodeToMethods(QString &relevant_code) {
-  return relevant_code.split(";", QString::SkipEmptyParts);
+  QRegExp splitter("(;\n)|(;.*[\\.!?]\n)");
+  splitter.setMinimal(true);
+  QStringList list;
+  for (int i = 0; i < relevant_code.count(splitter); ++i) {
+    list << relevant_code
+                .section(splitter, i, i, QString::SectionIncludeTrailingSep)
+                .trimmed();
+  }
+  return list;
 }
 
 void PureCBreaker::PlaceMethodsIntoGroups(const QStringList &methods,
@@ -264,7 +305,7 @@ QString PureCBreaker::AssembleHeaderBack(QVector<QStringList> groups) {
     QString parsed_group;
     for (const auto &element : group) {
       if (!element.isEmpty()) {
-        parsed_group.append(element + ";\n");
+        parsed_group.append(element + "\n");
         if (element.count("\n") != 0) {
           parsed_group.append("\n");
         }

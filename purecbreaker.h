@@ -18,6 +18,7 @@ class PureCBreaker {
     kStructs,
     kTypedefUnions,
     kUnions,
+    kOrphanedComments,
     kFunctions,
     kExternVariables,
     kOtherVariables
@@ -55,7 +56,7 @@ class PureCBreaker {
   static void AddStringIntoListOfLists(int list_index,
                                        const QString &string,
                                        QVector<QStringList> &groups);
-  static const int kBlocksAmount = 11;
+  static const int kBlocksAmount = 12;
   static const QMap<Blocks, bool (*)(const QString &)> kSortingAssistant;
 
   static int FindCloseCurvyBracePositions(int token_position, QString &block);
