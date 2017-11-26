@@ -242,7 +242,7 @@ void PureCBreaker::ExtractContainerFromCode(QString &relevant_code,
     int semicolon_position = ContainerBlockEnd(starter_index, relevant_code);
 
     QString container_block = relevant_code.mid(
-        starter_index, semicolon_position - starter_index + 1);
+        starter_index, semicolon_position - starter_index + 2);
     relevant_code.remove(container_block);
     container_block.chop(1);
     starter_index = relevant_code.indexOf(typedef_container_starter);
@@ -287,9 +287,8 @@ void PureCBreaker::SortGroups(QVector<QStringList> &groups) {
   for (int i = 0; i < kBlocksAmount; ++i) {
     if (i == kExternVariables || i == kOtherVariables) {
       MemberSorter sorter;
-      QString sorted_string = sorter.SortMembers(groups[i], ";");
+      QString sorted_string = sorter.SortMembers(groups[i], "");
       if (!sorted_string.isEmpty()) {
-        sorted_string.chop(1);
         groups[i] = QStringList(sorted_string);
       }
     } else if (i == kFunctions) {
