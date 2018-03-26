@@ -3,8 +3,13 @@
 #include <QDebug>
 #include <QRegExp>
 
-QString HeaderGuardFixer::FixHeaderGuardsInText(const QString &file_text,
-                                                const QString &file_name) {
+QString HeaderFileCleaner::FixHeaderGuardsInText(const QString &file_text,
+                                                 const QString &file_name) {
+  if (file_text.isEmpty()) {
+    QString full_header_guard = BuildHeaderGuardForEmptyFile(file_name);
+    return full_header_guard;
+  }
+
   QString return_string = file_text;
 
   QString header_guard = FindHeaderGuard(file_text);
@@ -25,7 +30,7 @@ QString HeaderGuardFixer::FixHeaderGuardsInText(const QString &file_text,
   return return_string;
 }
 
-QString HeaderGuardFixer::FindHeaderGuard(const QString &file_text) {
+QString HeaderFileCleaner::FindHeaderGuard(const QString &file_text) {
   QString header_guard_prefix = "#ifndef ";
   int header_guard_position = file_text.indexOf(header_guard_prefix);
   int header_guard_start_position =
@@ -37,11 +42,18 @@ QString HeaderGuardFixer::FindHeaderGuard(const QString &file_text) {
                        space_position - header_guard_start_position);
 }
 
-QString HeaderGuardFixer::MakeHeaderGuardFromFileName(
-    const QString &file_name) {
+QString
+HeaderFileCleaner::MakeHeaderGuardFromFileName(const QString &file_name) {
   QString updated_file_name = file_name;
   updated_file_name.replace(".", "_");
   updated_file_name = updated_file_name.toUpper();
 
   return updated_file_name;
+}
+
+QString
+HeaderFileCleaner::BuildHeaderGuardForEmptyFile(const QString &file_name) {
+  QString header_guard_name = MakeHeaderGuardFromFileName(file_name);
+  return "#ifndef " + header_guard_name + "\n#define " + header_guard_name +
+         "\n\n#endif  // " + header_guard_name;
 }

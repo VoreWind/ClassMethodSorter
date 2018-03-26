@@ -195,25 +195,25 @@ void PureCBreaker::RemoveSingleLineFromCode(QString &code,
 QMap<PureCBreaker::Blocks, bool (*)(const QString &)>
 PureCBreaker::PopulateAssistant() {
   QMap<Blocks, bool (*)(const QString &)> assistant;
-  assistant.insert(kTypedefEnums, *IsBlockTypedefEnum);
-  assistant.insert(kEnums, *IsBlockEnum);
+  assistant.insert(kDefinitions, *IsBlockTypedefEnum);
+  assistant.insert(kDefinitions, *IsBlockEnum);
   assistant.insert(kFunctions, *IsBlockFunction);
   assistant.insert(kExternVariables, *IsBlockExternVariable);
   assistant.insert(kOtherVariables, *IsBlockOtherVariable);
-  assistant.insert(kTypedefs, *IsBlockTypedef);
+  assistant.insert(kDefinitions, *IsBlockTypedef);
   return assistant;
 }
 
 void PureCBreaker::ExtractStructuresFromCode(QString &relevant_code,
                                              QVector<QStringList> &groups) {
-  ExtractContainerFromCode(relevant_code, groups, "struct", kStructs,
-                           kTypedefStructs);
+  ExtractContainerFromCode(relevant_code, groups, "struct", kDefinitions,
+                           kDefinitions);
 }
 
 void PureCBreaker::ExtractUnionsFromCode(QString &relevant_code,
                                          QVector<QStringList> &groups) {
-  ExtractContainerFromCode(relevant_code, groups, "union", kUnions,
-                           kTypedefUnions);
+  ExtractContainerFromCode(relevant_code, groups, "union", kDefinitions,
+                           kDefinitions);
 }
 
 int PureCBreaker::ContainerBlockEnd(int starter_index, QString &relevant_code) {

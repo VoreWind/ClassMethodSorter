@@ -5,19 +5,13 @@
 #include <QString>
 
 class PureCBreaker {
- public:
+public:
   static QString SortHeader(const QString &header_code);
 
- private:
+private:
   enum Blocks {
     kUnsortableCode,
-    kTypedefs,
-    kTypedefEnums,
-    kEnums,
-    kTypedefStructs,
-    kStructs,
-    kTypedefUnions,
-    kUnions,
+    kDefinitions,
     kOrphanedComments,
     kFunctions,
     kExternVariables,
@@ -53,8 +47,7 @@ class PureCBreaker {
   static void PlaceMethodsIntoGroups(const QStringList &methods,
                                      QVector<QStringList> &groups);
 
-  static void AddStringIntoListOfLists(int list_index,
-                                       const QString &string,
+  static void AddStringIntoListOfLists(int list_index, const QString &string,
                                        QVector<QStringList> &groups);
   static const int kBlocksAmount = 12;
   static const QMap<Blocks, bool (*)(const QString &)> kSortingAssistant;
@@ -69,4 +62,4 @@ class PureCBreaker {
   static int ContainerBlockEnd(int starter_index, QString &relevant_code);
 };
 
-#endif  // PURECBREAKER_H
+#endif // PURECBREAKER_H

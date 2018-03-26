@@ -3,7 +3,7 @@
 
 #include <QString>
 
-class HeaderGuardFixer {
+class HeaderFileCleaner {
 
 public:
   static QString FixHeaderGuardsInText(const QString &file_text,
@@ -12,6 +12,7 @@ public:
 private:
   static QString FindHeaderGuard(const QString &file_text);
   static QString MakeHeaderGuardFromFileName(const QString &file_name);
+  static QString BuildHeaderGuardForEmptyFile(const QString &file_name);
 };
 
 #endif // HEADERGUARDFIXER_H

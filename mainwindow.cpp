@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <functional>
 
+#include <QDateTime>
 #include <QDebug>
 #include <QDir>
 #include <QDirIterator>
@@ -30,6 +31,9 @@ MainWindow::MainWindow(QWidget *parent)
   connect(ui->mode_combo, SIGNAL(currentIndexChanged(int)), SLOT(SetMode(int)));
 
   SetMode(ui->mode_combo->currentIndex());
+
+  QDateTime date = QDateTime::currentDateTime();
+  qDebug() << date.toLocalTime() << date.toUTC();
 }
 
 QString MainWindow::ReorderTextFromString(const QString &text_section) {
@@ -68,7 +72,7 @@ void MainWindow::ReorderText() {
     }
     ui->segment_text_edit->setPlainText(text_section);
   } else if (mode_ == kFixHeaderGuards) {
-    text_section = HeaderGuardFixer::FixHeaderGuardsInText(
+    text_section = HeaderFileCleaner::FixHeaderGuardsInText(
         text_section, ui->name_line_edit->text());
   } else if (mode_ == kSortC) {
     text_section = PureCBreaker::SortHeader(text_section);
@@ -77,8 +81,13 @@ void MainWindow::ReorderText() {
 }
 
 void MainWindow::SelectSourceFolder() {
+  QString starting_path = ui->source_directory_line->text();
+  if (starting_path.isEmpty()) {
+    starting_path = "/home/";
+  }
+
   QString dir = QFileDialog::getExistingDirectory(
-      this, tr("Source Directory"), "/home",
+      this, tr("Source Directory"), starting_path,
       QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
   ui->source_directory_line->setText(dir);
@@ -86,8 +95,13 @@ void MainWindow::SelectSourceFolder() {
 }
 
 void MainWindow::SelectDestinationFolder() {
+  QString starting_path = ui->destination_directory_line->text();
+  if (starting_path.isEmpty()) {
+    starting_path = "/home/";
+  }
+
   QString dir = QFileDialog::getExistingDirectory(
-      this, tr("Destination Directory"), "/home/",
+      this, tr("Destination Directory"), starting_path,
       QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
   ui->destination_directory_line->setText(dir);
@@ -117,7 +131,7 @@ void MainWindow::ReorderAllTextInFolder() {
     if (mode_ == kSort) {
       parsed_file = ReorderTextFromString(file_contents);
     } else if (mode_ == kFixHeaderGuards) {
-      parsed_file = HeaderGuardFixer::FixHeaderGuardsInText(
+      parsed_file = HeaderFileCleaner::FixHeaderGuardsInText(
           file_contents, source_file_info.fileName());
     } else if (mode_ == kSortC) {
       parsed_file = PureCBreaker::SortHeader(file_contents);
@@ -138,8 +152,6 @@ void MainWindow::ReorderAllTextInFolder() {
     QTextStream out(&destination_file);
     out << parsed_file;
     destination_file.close();
-
-    QProcess::startDetached("clang-format-3.8", {"-i", destination_file_name});
   }
 }
 
